@@ -833,7 +833,7 @@ void onChangeRE_S(int id, int add) {
 		return;
 	}
 
-	if (readPin(BTN_INDEX_SHIFT)) {
+	if (is_pressed_key_SHIFT) {
 		return;
 	}
 
@@ -876,10 +876,15 @@ void onChangeRE_A(int id, int add) {
 	}
 		break;
 	case PARAM_GROUP_AMP: {
-		//LEVEL
-		int level = Gen_get_carr_level(CURR_GEN);
-		level = LIMIT(level + add, 127, 0);
-		Gen_set_carr_level(CURR_GEN, level);
+		if(is_pressed_key_SHIFT){
+			//PAN
+			Gen_set_pan(CURR_GEN,(CURR_GEN)->i_pan+add);
+		}else{
+			//LEVEL
+			int level = Gen_get_carr_level(CURR_GEN);
+			level = LIMIT(level + add, 127, 0);
+			Gen_set_carr_level(CURR_GEN, level);
+		}
 	}
 		break;
 	case PARAM_GROUP_MODU: {
@@ -1009,7 +1014,7 @@ void onChangeRE_C(int id, int add) {
 	}
 		break;
 	case PARAM_GROUP_AMP: {
-		if (readPin(BTN_INDEX_SHIFT)) {
+		if (is_pressed_key_SHIFT) {
 			//SLOPE
 			int value = Gen_get_carr_slope(CURR_GEN);
 			value = LIMIT(value + add, 127, 0);
@@ -1023,7 +1028,7 @@ void onChangeRE_C(int id, int add) {
 	}
 		break;
 	case PARAM_GROUP_MODU: {
-		if (readPin(BTN_INDEX_SHIFT)) {
+		if (is_pressed_key_SHIFT) {
 			//SLOPE
 			int value = Gen_get_fm_slope(CURR_GEN);
 			value = LIMIT(value + add, 127, 0);
@@ -1037,7 +1042,7 @@ void onChangeRE_C(int id, int add) {
 	}
 		break;
 	case PARAM_GROUP_BEND: {
-		if (readPin(BTN_INDEX_SHIFT)) {
+		if (is_pressed_key_SHIFT) {
 			//SLOPE
 			int value = LIMIT(Gen_get_bend_slope(CURR_GEN) + add,
 					127, 0);
@@ -1052,7 +1057,7 @@ void onChangeRE_C(int id, int add) {
 	}
 		break;
 	case PARAM_GROUP_NOISE: {
-		if (readPin(BTN_INDEX_SHIFT)) {
+		if (is_pressed_key_SHIFT) {
 			//SLOPE
 			int value = LIMIT(
 					Gen_get_noise_slope(CURR_GEN) + add, 127, 0);
@@ -1464,7 +1469,11 @@ void updateLCD() {
 	case PARAM_GROUP_AMP:
 		switch (selected_col) {
 		case ROTARY_ENCODER_A:
-			param = Gen_get_carr_level(CURR_GEN);
+			if(is_pressed_key_SHIFT){
+				param = (CURR_GEN)->i_pan;
+			}else{
+				param = Gen_get_carr_level(CURR_GEN);
+			}
 			break;
 		case ROTARY_ENCODER_B:
 			param = Gen_get_carr_attack(CURR_GEN);

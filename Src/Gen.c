@@ -6,6 +6,7 @@
  */
 
 #include "Gen.h"
+#include "math.h"
 
 float adcValue1 = 0;
 float adcValue2 = 0;
@@ -43,6 +44,9 @@ void Gen_init(Gen *gen) {
 
 	LFO_Init(&gen->lfo);
 
+	gen->i_pan = 0;
+	gen->cof_pan_l = 1.0f;
+	gen->cof_pan_r = 1.0f;
 }
 
 float FORCE_INLINE Gen_process_fm(Gen *gen, float cv) {
@@ -146,13 +150,10 @@ int Gen_get_carr_moddepth(Gen *gen) {
 }
 
 // amplifier
-
 void Gen_set_carr_level(Gen *gen, int level) {
-
-
 	level = LIMIT(level,127,0);
-
-	gen->carr_level = level / 127.0f;
+	float v = level / 127.0f;
+	gen->carr_level = v*v;
 }
 
 int Gen_get_carr_level(Gen *gen) {
@@ -462,6 +463,27 @@ void Gen_set_lfo_dest(Gen* gen, uint8_t v) {
 	LFO_setDest(&gen->lfo, v);
 }
 
+void Gen_set_pan(Gen* gen, int8_t v) {
+	v = LIMIT(v,-63,63);
+	gen->i_pan = v;
+	if (v < 0) {
+		//R
+		float cof = fabsf((float) v) / 63.0f;
+		cof *= cof;
+		gen->cof_pan_l = 1.0f;
+		gen->cof_pan_r = 1.0f - cof;
+	} else if (v > 0) {
+		//L
+		float cof = fabsf((float) v) / 63.0f;
+		cof *= cof;
+		gen->cof_pan_l = 1.0f - cof;
+		gen->cof_pan_r = 1.0f;
+	} else {
+		//center
+		gen->cof_pan_l = 1.0f;
+		gen->cof_pan_r = 1.0f;
+	}
+}
 
 void preset_kikck(Gen* gen){
 	Gen_set_carr_coarse(gen,29);
