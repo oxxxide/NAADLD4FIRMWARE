@@ -68,37 +68,52 @@ static FORCE_INLINE void audio_process(void* dest) {
 	float cv3 = cvToExponential(adcResult3 / 3102.0f);
 	float cv4 = cvToExponential(adcResult4 / 3102.0f);
 
+
+	float fvalue = 0;
+	float sumL = 0;
+	float sumR = 0;
+
 	for (int i = 0; i < AUDIO_BLOCK_SIZE * 2;) {
-		float fvalue = 0;
+		sumL = 0;
+		sumR = 0;
 
 		if(synth[0].modtype==MODTYPE_FM){
-			fvalue += (Gen_process_fm(&synth[0], USE_CV_IN ? cv1 : 1.0f));
+			fvalue = (Gen_process_fm(&synth[0], USE_CV_IN ? cv1 : 1.0f));
 		}else{
-			fvalue += (Gen_process_ringmod(&synth[0], USE_CV_IN ? cv1 : 1.0f));
+			fvalue = (Gen_process_ringmod(&synth[0], USE_CV_IN ? cv1 : 1.0f));
 		}
+		sumL += fvalue*synth[0].cof_pan_l;
+		sumR += fvalue*synth[0].cof_pan_r;
 
 		if (synth[1].modtype == MODTYPE_FM) {
-			fvalue += (Gen_process_fm(&synth[1], USE_CV_IN ? cv2 : 1.0f));
+			fvalue = (Gen_process_fm(&synth[1], USE_CV_IN ? cv2 : 1.0f));
 		} else {
-			fvalue += (Gen_process_ringmod(&synth[1], USE_CV_IN ? cv2 : 1.0f));
+			fvalue = (Gen_process_ringmod(&synth[1], USE_CV_IN ? cv2 : 1.0f));
 		}
+		sumL += fvalue*synth[1].cof_pan_l;
+		sumR += fvalue*synth[1].cof_pan_r;
 
 		if (synth[2].modtype == MODTYPE_FM) {
-			fvalue += (Gen_process_fm(&synth[2], USE_CV_IN ? cv3 : 1.0f));
+			fvalue = (Gen_process_fm(&synth[2], USE_CV_IN ? cv3 : 1.0f));
 		} else {
-			fvalue += (Gen_process_ringmod(&synth[2], USE_CV_IN ? cv3 : 1.0f));
+			fvalue = (Gen_process_ringmod(&synth[2], USE_CV_IN ? cv3 : 1.0f));
 		}
+		sumL += fvalue*synth[2].cof_pan_l;
+		sumR += fvalue*synth[2].cof_pan_r;
 
 		if (synth[3].modtype == MODTYPE_FM) {
-			fvalue += (Gen_process_fm(&synth[3], USE_CV_IN ? cv4 : 1.0f));
+			fvalue = (Gen_process_fm(&synth[3], USE_CV_IN ? cv4 : 1.0f));
 		} else {
-			fvalue += (Gen_process_ringmod(&synth[3], USE_CV_IN ? cv4 : 1.0f));
+			fvalue = (Gen_process_ringmod(&synth[3], USE_CV_IN ? cv4 : 1.0f));
 		}
+		sumL += fvalue*synth[3].cof_pan_l;
+		sumR += fvalue*synth[3].cof_pan_r;
 
-		fvalue = (fvalue > 1.0f) ? 1.0f : (fvalue < -1.0f) ? -1.0f : fvalue;
-		int16_t s16bit = (int16_t) (fvalue * (SHRT_MAX - 1));
-		workingcache[i++] = s16bit; //L
-		workingcache[i++] = s16bit; //R
+		sumL = (sumL > 1.0f) ? 1.0f : (sumL < -1.0f) ? -1.0f : sumL;
+		sumR = (sumR > 1.0f) ? 1.0f : (sumR < -1.0f) ? -1.0f : sumR;
+
+		workingcache[i++] = (int16_t) (sumL * (SHRT_MAX - 1)); //L
+		workingcache[i++] = (int16_t) (sumR * (SHRT_MAX - 1)); //R
 	}
 
 	memcpy(dest, workingcache, (sizeof(int16_t) * AUDIO_BLOCK_SIZE * 2));

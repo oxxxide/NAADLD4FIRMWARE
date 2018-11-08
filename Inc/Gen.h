@@ -53,6 +53,11 @@ typedef struct {
 	//int i_filter_env_amount;
 
 	int i_fm_harmonics;
+
+	//Pan
+	int i_pan;
+	float cof_pan_l;
+	float cof_pan_r;
 } Gen;
 
 extern float adcValue1;
@@ -211,6 +216,8 @@ void Gen_set_lfo_speed(Gen* gen, uint8_t v);
 void Gen_set_lfo_depth(Gen* gen, uint8_t v);
 
 void Gen_set_lfo_dest(Gen* gen, uint8_t v);
+
+void Gen_set_pan(Gen* gen, int8_t v);
 
 void preset_kikck(Gen* gen);
 
