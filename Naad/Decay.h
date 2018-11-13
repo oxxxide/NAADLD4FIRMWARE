@@ -10,7 +10,7 @@ typedef struct {
 	float out;
 } Decay;
 
-void Decay_trig(Decay *d);
+void Decay_trig(Decay *d, float max);
 
 void Decay_Init(Decay *d);
 

@@ -26,17 +26,7 @@ extern const real Table_Exponential[FASTMATH_TABLE_SIZE];
 extern const real Table_Exponential_ex2[2048];
 extern const real Table_square[FASTMATH_TABLE_SIZE];
 
-//real* __sin;
-//real* __cos;
-//real* __pow2;
-
 void FastMath_Init();
-
-void MATH_Destroy_WaveTables();
-
-//real FastMath_sinf(real rad);
-
-//real FastMath_cosf(real rad);
 
 real FastMath_toPitchCoefficient(real octave);
 

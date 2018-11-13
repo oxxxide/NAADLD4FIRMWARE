@@ -90,8 +90,8 @@ extern "C" {
 
 #ifndef bool
 typedef enum {
-    false,
-    true
+    false = 0,
+    true = 1
 } bool;
 #endif
 

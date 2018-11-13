@@ -62,6 +62,7 @@ typedef struct {
 
 	//routing
 	uint8_t mod_type;
+	int8_t panpot;
 
 } Tone;
 

@@ -19,14 +19,21 @@
 #define LCD_STATE_TRIG 5
 #define LCD_STATE_LOAD_PROGRAM 6
 #define LCD_STATE_SAVE_PROGRAM 7
+#define LCD_STATE_MONITOR_CV 8
+#define LCD_STATE_FACTORY_RESET 8
 
 #define ITEM_INDEX_SEQ 0
 #define ITEM_INDEX_SYNC 1
 #define ITEM_INDEX_MIDI 2
 #define ITEM_INDEX_TRIG 3
+#define ITEM_INDEX_MONITOR_CV 4
+#define ITEM_INDEX_FACTORY_RESET 5
 
 #define MENU_TEXTS_1 " SEQ    SYNC    "
 #define MENU_TEXTS_2 " MIDI   TRIG    "
+#define MENU_TEXTS_3 " MONITOR CV-IN  "
+#define MENU_TEXTS_4 " RESTORE FS     "
+
 #define MENU_MIDI_TEXT_1 "MIDI Prt Ch Note"
 #define MENU_MIDI_TEXT_2 "RECV   %c %2d  %3d"
 
@@ -84,5 +91,7 @@ void SyncConfig_ChangeSync(void);
 
 void TriggerConfig_Show(void);
 void TriggerConfig_Change(int add);
+
+void CV_Monitor_Show(void);
 
 #endif /* CUI_H_ */

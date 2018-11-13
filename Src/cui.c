@@ -45,15 +45,22 @@ uint8_t triggerThreshold = 0;
 char ChPtName[4] = { 'A', 'B', 'C', 'D' };
 
 void SelectMenu(int add) {
+
 	int tmp = LcdMenuSelectedItemIndex;
 	if (add > 0) {
 		tmp++;
 	} else if (add < 0) {
 		tmp--;
 	}
-	LcdMenuSelectedItemIndex = LIMIT(tmp,3,0);
 
-	//ƒƒjƒ…[•`‰æ
+	if (tmp < 0) {
+		tmp = 5;
+	} else if (tmp > 5) {
+		tmp = 0;
+	}
+
+	LcdMenuSelectedItemIndex = tmp;
+
 	switch (LcdMenuSelectedItemIndex) {
 	case 0:
 		lcdWriteText(0,"~SEQ    SYNC    ",16);
@@ -71,12 +78,20 @@ void SelectMenu(int add) {
 		lcdWriteText(0," SEQ    SYNC    ",16);
 		lcdWriteText(1," MIDI  ~TRIG    ",16);
 		break;
+	case 4:
+		lcdWriteText(0,"~CV Monitor     ",16);
+		lcdWriteText(1," Factory Reset  ",16);
+		break;
+	case 5:
+		lcdWriteText(0," CV Monitor     ",16);
+		lcdWriteText(1,"~Factory Reset  ",16);
+		break;
 	}
 }
 
 static void MIDIConfig_refresh() {
 	char buff[17];
-	//MIDI‰æ–Ê‚Ö
+
 	sprintf(buff,
 			MENU_MIDI_TEXT_2,
 			ChPtName[SelectedPartNo],
@@ -177,4 +192,38 @@ void TriggerConfig_Change(int add) {
 
 void apply(Gen* s, uint8_t pSetNo) {
 	ToneCopyToGen(s, &tones[pSetNo]);
+}
+
+void CV_Monitor_Show(){
+
+	static const char* fmtstr1 = "A:%3.2f B:%3.2f   ";
+	static const char* fmtstr2 = "C:%3.2f D:%3.2f   ";
+
+	static char str1[17] = {'\0'};
+	static char str2[17] = {'\0'};
+
+
+
+	if (HAL_GPIO_ReadPin(GPIO_INPUT_ADCSW1_GPIO_Port, GPIO_INPUT_ADCSW1_Pin)
+			== GPIO_PIN_RESET) {
+		cv1 = 0;
+	}
+	if (HAL_GPIO_ReadPin(GPIO_INPUT_ADCSW2_GPIO_Port, GPIO_INPUT_ADCSW2_Pin)
+			== GPIO_PIN_RESET) {
+		cv2 = 0;
+	}
+	if (HAL_GPIO_ReadPin(GPIO_INPUT_ADCSW3_GPIO_Port, GPIO_INPUT_ADCSW3_Pin)
+			== GPIO_PIN_RESET) {
+		cv3 = 0;
+	}
+	if (HAL_GPIO_ReadPin(GPIO_INPUT_ADCSW4_GPIO_Port, GPIO_INPUT_ADCSW4_Pin)
+			== GPIO_PIN_RESET) {
+		cv4 = 0;
+	}
+
+	sprintf(str1,fmtstr1,cv1,cv2);
+	sprintf(str2,fmtstr2,cv3,cv4);
+
+	lcdWriteText(0, &str1[0], 16);
+	lcdWriteText(1, &str2[0], 16);
 }

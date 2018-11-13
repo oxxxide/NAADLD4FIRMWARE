@@ -13,22 +13,26 @@ float adcValue2 = 0;
 float adcValue3 = 0;
 float adcValue4 = 0;
 
-void Gen_trig(Gen *gen){
-	AHR_trig(&gen->eg_noise);
-	Decay_trig(&gen->decay_filter);
-	AHR_trig(&gen->eg_mod);
-	AHR_trig(&gen->eg_bend);
-	AHR_trig(&gen->eg_amp);
+void Gen_trig(Gen *gen, float velocity){
+	AHR_trig(&gen->eg_noise, velocity);
+	Decay_trig(&gen->decay_filter, 1.0f);
+	AHR_trig(&gen->eg_mod, 1.0f);
+	float reduce = (1.0f-velocity)*gen->bendVelAmount;
+	AHR_trig(&gen->eg_bend, 1.0f - reduce);
+	AHR_trig(&gen->eg_amp, velocity);
 }
 
 void Gen_init(Gen *gen) {
 
 	Filter_Init(&gen->filter);
+	Gen_set_carr_level(gen, 64);
+	Gen_set_pan(gen, 0);
+	Gen_set_bend_velocity_sense(gen, 127);
 
-	gen->carr_level = 0.5f;
 	gen->noise_level = 0;
 	gen->mod_depth = 0;
 	gen->cf_ringmod_dev = 1.0f;
+	gen->bendVelAmount = 1.0f;
 	gen->cv = adcValue1;
 	gen->modtype = MODTYPE_FM;
 
@@ -44,9 +48,9 @@ void Gen_init(Gen *gen) {
 
 	LFO_Init(&gen->lfo);
 
-	gen->i_pan = 0;
-	gen->cof_pan_l = 1.0f;
-	gen->cof_pan_r = 1.0f;
+	//gen->i_pan = 0;
+	//gen->cof_pan_l = 1.0f;
+	//gen->cof_pan_r = 1.0f;
 }
 
 float FORCE_INLINE Gen_process_fm(Gen *gen, float cv) {
@@ -153,18 +157,16 @@ int Gen_get_carr_moddepth(Gen *gen) {
 void Gen_set_carr_level(Gen *gen, int level) {
 	level = LIMIT(level,127,0);
 	float v = level / 127.0f;
+	gen->i_level = level;
 	gen->carr_level = v*v;
 }
 
 int Gen_get_carr_level(Gen *gen) {
-	return (int) (gen->carr_level * 127);
+	return gen->i_level;
 }
 
 void Gen_set_carr_attack(Gen *gen, int v) {
-
-
 	v = LIMIT(v,127,0);
-
 	AHR_set_attack(&gen->eg_amp, v);
 }
 
@@ -276,9 +278,7 @@ int Gen_get_fm_release(Gen *gen) {
 ///bend
 
 void Gen_set_bend_amount(Gen *gen, int v) {
-
 	v = LIMIT(v,127,0);
-
 	Osc_set_modgain(&gen->carr, v);
 }
 
@@ -286,22 +286,27 @@ int Gen_get_bend_amount(Gen *gen) {
 	return gen->carr.egAmount;
 }
 
-void Gen_set_bend_attack(Gen *gen, int v) {
-
+void Gen_set_bend_velocity_sense(Gen *gen, int v){
 	v = LIMIT(v,127,0);
+	gen->i_bend_vel_sense = v;
+	gen->bendVelAmount = v/127.0f;
+}
 
+int Gen_get_bend_velocity_sense(Gen *gen){
+	return (int)(gen->i_bend_vel_sense);
+}
+
+void Gen_set_bend_attack(Gen *gen, int v) {
+	v = LIMIT(v,127,0);
 	AHR_set_attack(&gen->eg_bend, v);
 }
 
 int Gen_get_bend_attack(Gen *gen) {
-
 	return gen->eg_bend.i_attack;
 }
 
 void Gen_set_bend_hold(Gen *gen, int v) {
-
 	v = LIMIT(v,127,0);
-
 	AHR_set_hold(&gen->eg_bend, v);
 }
 
@@ -310,10 +315,7 @@ int Gen_get_bend_hold(Gen *gen) {
 }
 
 void Gen_set_bend_slope(Gen *gen, int v) {
-
-
 	v = LIMIT(v,127,0);
-
 	AHR_set_slope(&gen->eg_bend, v);
 }
 
@@ -322,9 +324,7 @@ int Gen_get_bend_slope(Gen *gen) {
 }
 
 void Gen_set_bend_release(Gen *gen, int v) {
-
 	v = LIMIT(v,127,0);
-
 	AHR_set_release(&gen->eg_bend, v);
 }
 
@@ -334,15 +334,14 @@ int Gen_get_bend_release(Gen *gen) {
 
 //Noise
 void Gen_set_noise_level(Gen* gen, int level) {
-
-	level = LIMIT(level,127,0);
-
-	gen->noise_level = level / 127.0f;
+	gen->i_noise_level = level;
+	float v = LIMIT(level,127,0) / 127.0f;
+	gen->noise_level = v * v;
 }
 
 //Noise
 int Gen_get_noise_level(Gen* gen) {
-	return (int)(gen->noise_level * 127);
+	return gen->i_noise_level;
 }
 
 void Gen_set_noise_attack(Gen* gen, int v) {
@@ -378,7 +377,6 @@ int Gen_get_noise_release(Gen* gen) {
 }
 
 //Filter
-//
 void Gen_set_filter_cutoff(Gen* gen, int v) {
 	gen->i_cutoff = LIMIT(v,127,0);
 	Filter_setCutoff(&gen->filter, v, note_to_freq(v));
@@ -392,16 +390,13 @@ void Gen_set_filter_cutoff_w_lfo(Gen* gen, int v,float lfov1) {
 uint8_t Gen_get_filter_cutoff(Gen* gen) {
 	return gen->i_cutoff;
 }
-//
 
 uint8_t Gen_get_filter_amount(Gen* gen) {
 	return (uint8_t)gen->decay_filter.i_amount;
 }
 
 void Gen_set_filter_resonance(Gen* gen, int v) {
-
 	v = LIMIT(v,6,0);
-
 	gen->filter.resonance = v;
 }
 
@@ -463,19 +458,18 @@ void Gen_set_lfo_dest(Gen* gen, uint8_t v) {
 	LFO_setDest(&gen->lfo, v);
 }
 
-void Gen_set_pan(Gen* gen, int8_t v) {
-	v = LIMIT(v,-63,63);
+void Gen_set_pan(Gen* gen, int v) {
+	v = LIMIT(v,63,-63);
 	gen->i_pan = v;
+
 	if (v < 0) {
 		//R
 		float cof = fabsf((float) v) / 63.0f;
-		cof *= cof;
 		gen->cof_pan_l = 1.0f;
 		gen->cof_pan_r = 1.0f - cof;
 	} else if (v > 0) {
 		//L
 		float cof = fabsf((float) v) / 63.0f;
-		cof *= cof;
 		gen->cof_pan_l = 1.0f - cof;
 		gen->cof_pan_r = 1.0f;
 	} else {
@@ -554,7 +548,7 @@ void preset_hh_rnd(Gen* gen){
 void preset_click_rnd(Gen* gen) {
 
 	Gen_set_carr_level(gen, 40 );
-	//Gen_set_carr_coarse(gen, (int)(110 + Noise_Generate() * 10) );
+
 	Gen_set_carr_moddepth(gen, (int) 100 + Noise_Generate() * 27);
 	Gen_set_carr_hold(gen, 10);
 	Gen_set_carr_release(gen, 30);

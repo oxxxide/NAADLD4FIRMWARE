@@ -10,22 +10,7 @@
 
 #include "stm32f4xx_hal.h"
 
-#define MIDI_MESSAGE_BUFF_SIZE 32
-
-typedef struct {
-	uint8_t buff[MIDI_MESSAGE_BUFF_SIZE];
-	volatile int write_cursor;
-	volatile int buff_count;
-} MIDI_Message_Buffer;
-
-void MIDI_Message_Buffer_Init(MIDI_Message_Buffer* instance);
-
-void MIDI_Message_Push(MIDI_Message_Buffer* instance, uint8_t byte);
-
-uint8_t MIDI_Message_Read(MIDI_Message_Buffer* instance, int history);
-
-void MIDI_Message_Clear_Buff(MIDI_Message_Buffer* instance);
-
+void MidiParser_PushByte(uint8_t byte);
 
 void ON_RECEIVE_NOTE_ON(uint8_t ch,uint8_t note,uint8_t velocity);
 void ON_RECEIVE_NOTE_OFF(uint8_t ch,uint8_t note,uint8_t velocity);

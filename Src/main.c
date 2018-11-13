@@ -60,6 +60,8 @@
 #include "cui.h"
 #include "Tone.h"
 #include "I2CFlash.h"
+#include "MIDIParser.h"
+#include "MidiConfig.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -75,14 +77,11 @@ DMA_HandleTypeDef hdma_i2c3_tx;
 I2S_HandleTypeDef hi2s3;
 DMA_HandleTypeDef hdma_spi3_tx;
 
-RTC_HandleTypeDef hrtc;
-
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim6;
 TIM_HandleTypeDef htim7;
 
 UART_HandleTypeDef huart1;
-UART_HandleTypeDef huart3;
 
 osThreadId defaultTaskHandle;
 
@@ -96,6 +95,9 @@ int selected_col = 1;
 static int pNo = 0;
 static uint8_t tartgetProgramNo = 0;
 static I2C_EEPROM eeprom;
+static MidiConfig midiConfig;
+volatile float cv1 = 0, cv2 = 0, cv3 = 0, cv4 = 0;
+volatile uint8_t tmp_byte = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -108,8 +110,6 @@ static void MX_I2C3_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_I2C2_Init(void);
-static void MX_USART3_UART_Init(void);
-static void MX_RTC_Init(void);
 static void MX_TIM7_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_USART1_UART_Init(void);
@@ -138,53 +138,49 @@ void updateSelectProgram(void);
   */
 int main(void)
 {
-  /* USER CODE BEGIN 1 */
+	/* USER CODE BEGIN 1 */
 
+	/* USER CODE END 1 */
 
+	/* MCU Configuration----------------------------------------------------------*/
 
-  /* USER CODE END 1 */
+	/* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+	HAL_Init();
 
-  /* MCU Configuration----------------------------------------------------------*/
+	/* USER CODE BEGIN Init */
 
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
+	/* USER CODE END Init */
 
-  /* USER CODE BEGIN Init */
+	/* Configure the system clock */
+	SystemClock_Config();
 
-  /* USER CODE END Init */
+	/* USER CODE BEGIN SysInit */
 
-  /* Configure the system clock */
-  SystemClock_Config();
+	/* USER CODE END SysInit */
 
-  /* USER CODE BEGIN SysInit */
+	/* Initialize all configured peripherals */
+	MX_GPIO_Init();
+	MX_DMA_Init();
+	MX_I2S3_Init();
+	MX_TIM6_Init();
+	MX_I2C3_Init();
+	MX_ADC1_Init();
+	MX_I2C1_Init();
+	MX_I2C2_Init();
+	MX_TIM7_Init();
+	MX_TIM2_Init();
+	MX_USART1_UART_Init();
 
-  /* USER CODE END SysInit */
-
-  /* Initialize all configured peripherals */
-  MX_GPIO_Init();
-  MX_DMA_Init();
-  MX_I2S3_Init();
-  MX_TIM6_Init();
-  MX_I2C3_Init();
-  MX_ADC1_Init();
-  MX_I2C1_Init();
-  MX_I2C2_Init();
-  MX_USART3_UART_Init();
-  MX_RTC_Init();
-  MX_TIM7_Init();
-  MX_TIM2_Init();
-  MX_USART1_UART_Init();
-
-  /* Initialize interrupts */
-  MX_NVIC_Init();
-  /* USER CODE BEGIN 2 */
+	/* Initialize interrupts */
+	MX_NVIC_Init();
+	/* USER CODE BEGIN 2 */
 	FastMath_Init();
 	InitRotaryEncoders();
 	ButtonConfigInit();
 	InitSynthesizer();
 	InitFactorySetTones();
-
 	I2CFlash_Init(&eeprom, &hi2c1);
+	InitMidiConfig(&midiConfig);
 
 	//LoadTone(&synth[0],3);
 	//LoadTone(&synth[1],4);
@@ -218,6 +214,8 @@ int main(void)
 
 	HAL_TIM_Base_Start_IT(&htim6);
 	HAL_I2S_Transmit_DMA(&hi2s3, circularbuffer, AUDIO_BLOCK_SIZE * 2 * 2);
+
+	HAL_UART_Receive_IT(&huart1, (uint8_t*)&tmp_byte, 1); //Start MIDI Driver
 
   /* USER CODE END 2 */
 
@@ -255,6 +253,8 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
+
+
   	/*
 	Tone t;
 	InitTone(&t);
@@ -290,13 +290,11 @@ void SystemClock_Config(void)
 
     /**Initializes the CPU, AHB and APB busses clocks 
     */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_LSI;
-  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.HSICalibrationValue = 16;
-  RCC_OscInitStruct.LSIState = RCC_LSI_ON;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
-  RCC_OscInitStruct.PLL.PLLM = 8;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+  RCC_OscInitStruct.PLL.PLLM = 4;
   RCC_OscInitStruct.PLL.PLLN = 168;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
   RCC_OscInitStruct.PLL.PLLQ = 7;
@@ -319,10 +317,9 @@ void SystemClock_Config(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_I2S|RCC_PERIPHCLK_RTC;
+  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_I2S;
   PeriphClkInitStruct.PLLI2S.PLLI2SN = 86;
   PeriphClkInitStruct.PLLI2S.PLLI2SR = 2;
-  PeriphClkInitStruct.RTCClockSelection = RCC_RTCCLKSOURCE_LSI;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
@@ -507,37 +504,6 @@ static void MX_I2S3_Init(void)
 
 }
 
-/* RTC init function */
-static void MX_RTC_Init(void)
-{
-
-  /* USER CODE BEGIN RTC_Init 0 */
-
-  /* USER CODE END RTC_Init 0 */
-
-  /* USER CODE BEGIN RTC_Init 1 */
-
-  /* USER CODE END RTC_Init 1 */
-
-    /**Initialize RTC Only 
-    */
-  hrtc.Instance = RTC;
-  hrtc.Init.HourFormat = RTC_HOURFORMAT_24;
-  hrtc.Init.AsynchPrediv = 127;
-  hrtc.Init.SynchPrediv = 255;
-  hrtc.Init.OutPut = RTC_OUTPUT_DISABLE;
-  hrtc.Init.OutPutPolarity = RTC_OUTPUT_POLARITY_HIGH;
-  hrtc.Init.OutPutType = RTC_OUTPUT_TYPE_OPENDRAIN;
-  if (HAL_RTC_Init(&hrtc) != HAL_OK)
-  {
-    _Error_Handler(__FILE__, __LINE__);
-  }
-  /* USER CODE BEGIN RTC_Init 2 */
-
-  /* USER CODE END RTC_Init 2 */
-
-}
-
 /* TIM2 init function */
 static void MX_TIM2_Init(void)
 {
@@ -623,7 +589,7 @@ static void MX_USART1_UART_Init(void)
 {
 
   huart1.Instance = USART1;
-  huart1.Init.BaudRate = 115200;
+  huart1.Init.BaudRate = 31250;
   huart1.Init.WordLength = UART_WORDLENGTH_8B;
   huart1.Init.StopBits = UART_STOPBITS_1;
   huart1.Init.Parity = UART_PARITY_NONE;
@@ -631,25 +597,6 @@ static void MX_USART1_UART_Init(void)
   huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
   huart1.Init.OverSampling = UART_OVERSAMPLING_16;
   if (HAL_UART_Init(&huart1) != HAL_OK)
-  {
-    _Error_Handler(__FILE__, __LINE__);
-  }
-
-}
-
-/* USART3 init function */
-static void MX_USART3_UART_Init(void)
-{
-
-  huart3.Instance = USART3;
-  huart3.Init.BaudRate = 115200;
-  huart3.Init.WordLength = UART_WORDLENGTH_8B;
-  huart3.Init.StopBits = UART_STOPBITS_1;
-  huart3.Init.Parity = UART_PARITY_NONE;
-  huart3.Init.Mode = UART_MODE_TX_RX;
-  huart3.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-  huart3.Init.OverSampling = UART_OVERSAMPLING_16;
-  if (HAL_UART_Init(&huart3) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
@@ -684,6 +631,8 @@ static void MX_DMA_Init(void)
         * Output
         * EVENT_OUT
         * EXTI
+     PA11   ------> USB_OTG_FS_DM
+     PA12   ------> USB_OTG_FS_DP
 */
 static void MX_GPIO_Init(void)
 {
@@ -693,6 +642,7 @@ static void MX_GPIO_Init(void)
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOE_CLK_ENABLE();
   __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
@@ -704,22 +654,20 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : TRG2_Pin TRG3_Pin TRG1_Pin TRG4_Pin */
-  GPIO_InitStruct.Pin = TRG2_Pin|TRG3_Pin|TRG1_Pin|TRG4_Pin;
+  /*Configure GPIO pins : TRG1_Pin TRG2_Pin TRG3_Pin TRG4_Pin */
+  GPIO_InitStruct.Pin = TRG1_Pin|TRG2_Pin|TRG3_Pin|TRG4_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : GPIO_ADCSW1_Pin GPIO_INPUT_ADCSW2_Pin GPIO_INPUT_ADCSW3_Pin GPIO_INPUT_ADCSW4_Pin */
-  GPIO_InitStruct.Pin = GPIO_ADCSW1_Pin|GPIO_INPUT_ADCSW2_Pin|GPIO_INPUT_ADCSW3_Pin|GPIO_INPUT_ADCSW4_Pin;
+  /*Configure GPIO pin : GPIO_EXTSW1_Pin */
+  GPIO_InitStruct.Pin = GPIO_EXTSW1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIO_EXTSW1_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : GPIO_ADCSW2_Pin GPIO_ADCSW3_Pin GPIO_ADCSW4_Pin BTN1_Pin 
-                           BTN2_Pin */
-  GPIO_InitStruct.Pin = GPIO_ADCSW2_Pin|GPIO_ADCSW3_Pin|GPIO_ADCSW4_Pin|BTN1_Pin 
-                          |BTN2_Pin;
+  /*Configure GPIO pins : GPIO_EXTSW2_Pin BTN1_Pin BTN2_Pin */
+  GPIO_InitStruct.Pin = GPIO_EXTSW2_Pin|BTN1_Pin|BTN2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
@@ -736,10 +684,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : GPIO_INPUT_ADCSW1_Pin BTN3_Pin */
-  GPIO_InitStruct.Pin = GPIO_INPUT_ADCSW1_Pin|BTN3_Pin;
+  /*Configure GPIO pins : GPIO_INPUT_ADCSW1_Pin GPIO_IN_PAD1_Pin GPIO_IN_PAD2_Pin GPIO_IN_PAD3_Pin 
+                           GPIO_IN_PAD4_Pin */
+  GPIO_InitStruct.Pin = GPIO_INPUT_ADCSW1_Pin|GPIO_IN_PAD1_Pin|GPIO_IN_PAD2_Pin|GPIO_IN_PAD3_Pin 
+                          |GPIO_IN_PAD4_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pins : RoEncC1_Pin RoEncC2_Pin RoEncD1_Pin RoEncD2_Pin 
@@ -750,11 +700,11 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : GPIO_IN_PAD1_Pin GPIO_IN_PAD2_Pin GPIO_IN_PAD3_Pin GPIO_IN_PAD4_Pin */
-  GPIO_InitStruct.Pin = GPIO_IN_PAD1_Pin|GPIO_IN_PAD2_Pin|GPIO_IN_PAD3_Pin|GPIO_IN_PAD4_Pin;
+  /*Configure GPIO pins : GPIO_INPUT_ADCSW2_Pin GPIO_INPUT_ADCSW3_Pin GPIO_INPUT_ADCSW4_Pin */
+  GPIO_InitStruct.Pin = GPIO_INPUT_ADCSW2_Pin|GPIO_INPUT_ADCSW3_Pin|GPIO_INPUT_ADCSW4_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
   /*Configure GPIO pins : BTN9_Pin BTN4_Pin BTN5_Pin BTN6_Pin 
                            BTN7_Pin BTN8_Pin */
@@ -764,6 +714,14 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
+  /*Configure GPIO pins : PA11 PA12 */
+  GPIO_InitStruct.Pin = GPIO_PIN_11|GPIO_PIN_12;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  GPIO_InitStruct.Alternate = GPIO_AF10_OTG_FS;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
   /*Configure GPIO pins : BLED1_Pin BLED2_Pin BLED3_Pin BLED4_Pin 
                            BLED5_Pin BLED6_Pin BLED7_Pin */
   GPIO_InitStruct.Pin = BLED1_Pin|BLED2_Pin|BLED3_Pin|BLED4_Pin 
@@ -772,6 +730,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : BTN3_Pin */
+  GPIO_InitStruct.Pin = BTN3_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(BTN3_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : LED2_Pin */
   GPIO_InitStruct.Pin = LED2_Pin;
@@ -844,22 +808,10 @@ void onChangeRE_S(int id, int add) {
 	selected_row = LIMIT(selected_row + (add > 0 ? 1 : -1), 6, 0);
 	ledChange(selected_row);
 	refreshLCD();
-	//updateLCD();
+
 }
 
 void onChangeRE_A(int id, int add) {
-	/*
-	if (LcdMenuState == LCD_STATE_MENU) {
-		return;
-	}
-	if (LcdMenuState == LCD_STATE_MIDI) {
-		return;
-	}
-	if (LcdMenuState == LCD_STATE_LOAD_PROGRAM
-			|| LcdMenuState == LCD_STATE_SAVE_PROGRAM) {
-		return;
-	}
-	*/
 
 	if(LcdMenuState != LCD_STATE_DEFAULT){
 		return;
@@ -878,15 +830,17 @@ void onChangeRE_A(int id, int add) {
 	case PARAM_GROUP_AMP: {
 		if(is_pressed_key_SHIFT){
 			//PAN
-			Gen_set_pan(CURR_GEN,(CURR_GEN)->i_pan+add);
+			Gen_set_pan(CURR_GEN,synth[SelectedChannel].i_pan +add);
+			break;
 		}else{
 			//LEVEL
 			int level = Gen_get_carr_level(CURR_GEN);
 			level = LIMIT(level + add, 127, 0);
 			Gen_set_carr_level(CURR_GEN, level);
+			break;
 		}
 	}
-		break;
+
 	case PARAM_GROUP_MODU: {
 		//FM FREQ
 		int n = Gen_get_fm_harmonics(CURR_GEN);
@@ -896,9 +850,15 @@ void onChangeRE_A(int id, int add) {
 		break;
 	case PARAM_GROUP_BEND: {
 		//AMOUNT
-		int amount = Gen_get_bend_amount(CURR_GEN);
-		amount = LIMIT(amount + add, 127, 0);
-		Gen_set_bend_amount(CURR_GEN, amount);
+		if(is_pressed_key_SHIFT){
+			int amount = Gen_get_bend_velocity_sense(CURR_GEN);
+			amount = LIMIT(amount + add, 127, 0);
+			Gen_set_bend_velocity_sense(CURR_GEN,amount);
+		}else{
+			int amount = Gen_get_bend_amount(CURR_GEN);
+			amount = LIMIT(amount + add, 127, 0);
+			Gen_set_bend_amount(CURR_GEN, amount);
+		}
 	}
 		break;
 	case PARAM_GROUP_NOISE: {
@@ -1059,8 +1019,7 @@ void onChangeRE_C(int id, int add) {
 	case PARAM_GROUP_NOISE: {
 		if (is_pressed_key_SHIFT) {
 			//SLOPE
-			int value = LIMIT(
-					Gen_get_noise_slope(CURR_GEN) + add, 127, 0);
+			int value = LIMIT(Gen_get_noise_slope(CURR_GEN) + add, 127, 0);
 			Gen_set_noise_slope(CURR_GEN, value);
 		} else {
 			//NOISE HOLD
@@ -1210,17 +1169,6 @@ void onChangeRE_E(int id, int add) {
 
 }
 
-/*
- void updateEncodersState() {
- //for (int i = 0; i < NUM_OF_ENCODER; i++) {
- int val = Renc_read(&encoders[1]);
- if (!val) {
- encoders[1].onChange(1, val);
- }
- //}
- }
- */
-
 void ON_PUSH_MENU(void) {
 	if (LcdMenuState == LCD_STATE_MENU) {
 		SelectMenu(1);
@@ -1233,18 +1181,16 @@ void ON_PUSH_MENU(void) {
 	}
 
 	if (LcdMenuState == LCD_STATE_SYNC) {
-		//何もしな?��?
+		//NOP
 		return;
 	}
 
 	if (LcdMenuState == LCD_STATE_TRIG) {
-		//何もしな?��?
+		//NOP
 		return;
 	}
 
 	if (LcdMenuState == LCD_STATE_DEFAULT) {
-		//lcdWriteText(0, MENU_TEXTS_1, 16);
-		//lcdWriteText(1, MENU_TEXTS_2, 16);
 		SelectMenu(0);
 		LcdMenuState = LCD_STATE_MENU;
 		return;
@@ -1253,25 +1199,27 @@ void ON_PUSH_MENU(void) {
 
 void ON_PUSH_EXIT(void) {
 
-	//メニュー選?��? プログラ?��?選択時
 	if (LcdMenuState == LCD_STATE_MENU || LcdMenuState == LCD_STATE_LOAD_PROGRAM) {
 		LcdMenuState = LCD_STATE_DEFAULT;
-		//?��?フォルトに戻?��?
 		refreshLCD();
 		return;
 	}
 
 	if (LcdMenuState == LCD_STATE_MIDI || LcdMenuState == LCD_STATE_SYNC
 			|| LcdMenuState == LCD_STATE_TRIG) {
-		//メニューへ戻?��?
 		LcdMenuState = LCD_STATE_MENU;
-		//write_LCD_ALL(MENU_TEXTS_1, MENU_TEXTS_2);
+		SelectMenu(0);
+		return;
+	}
+
+	if (LcdMenuState == LCD_STATE_MONITOR_CV){
+		LcdMenuState = LCD_STATE_MENU;
 		SelectMenu(0);
 		return;
 	}
 
 	if (LcdMenuState == LCD_STATE_DEFAULT) {
-		//何もしな?��?
+		//NOP
 		return;
 	}
 
@@ -1311,15 +1259,25 @@ void ON_PUSH_ENTER(void) {
 			LcdMenuState = LCD_STATE_SYNC;
 			break;
 		case ITEM_INDEX_TRIG:
-			//トリガー調?��?へ
 			TriggerConfig_Show();
 			LcdMenuState = LCD_STATE_TRIG;
+			break;
+		case ITEM_INDEX_MONITOR_CV:
+			CV_Monitor_Show();
+			LcdMenuState = LCD_STATE_MONITOR_CV;
+			break;
+		case ITEM_INDEX_FACTORY_RESET:
+			LcdMenuState = LCD_STATE_FACTORY_RESET;
 			break;
 		}
 	}
 
+	if(LcdMenuState == LCD_STATE_MONITOR_CV){
+		CV_Monitor_Show();
+		return;
+	}
+
 	if (LcdMenuState == LCD_STATE_LOAD_PROGRAM) {
-		//LcdMenuState = LCD_STATE_DEFAULT;
 		Tone t;
 		HAL_StatusTypeDef result = ReadTone(&eeprom,tartgetProgramNo,&t);
 		if(result==HAL_OK){
@@ -1403,7 +1361,7 @@ void ON_PUSH_A(void) {
 		SelectedChannel = 0;
 		updateSelectProgram();
 	}
-	Gen_trig(&synth[0]);
+	Gen_trig(&synth[0],1.0f);
 }
 
 void ON_PUSH_B(void) {
@@ -1411,7 +1369,7 @@ void ON_PUSH_B(void) {
 		SelectedChannel = 1;
 		updateSelectProgram();
 	}
-	Gen_trig(&synth[1]);
+	Gen_trig(&synth[1],1.0f);
 }
 
 void ON_PUSH_C(void) {
@@ -1419,7 +1377,7 @@ void ON_PUSH_C(void) {
 		SelectedChannel = 2;
 		updateSelectProgram();
 	}
-	Gen_trig(&synth[2]);
+	Gen_trig(&synth[2],1.0f);
 }
 
 void ON_PUSH_D(void) {
@@ -1427,7 +1385,7 @@ void ON_PUSH_D(void) {
 		SelectedChannel = 3;
 		updateSelectProgram();
 	}
-	Gen_trig(&synth[3]);
+	Gen_trig(&synth[3],1.0f);
 }
 
 void refreshLCD(){
@@ -1470,7 +1428,7 @@ void updateLCD() {
 		switch (selected_col) {
 		case ROTARY_ENCODER_A:
 			if(is_pressed_key_SHIFT){
-				param = (CURR_GEN)->i_pan;
+				param = synth[SelectedChannel].i_pan;
 			}else{
 				param = Gen_get_carr_level(CURR_GEN);
 			}
@@ -1479,7 +1437,11 @@ void updateLCD() {
 			param = Gen_get_carr_attack(CURR_GEN);
 			break;
 		case ROTARY_ENCODER_C:
-			param = Gen_get_carr_hold(CURR_GEN);
+			if(is_pressed_key_SHIFT){
+				param = Gen_get_carr_slope(CURR_GEN);
+			}else{
+				param = Gen_get_carr_hold(CURR_GEN);
+			}
 			break;
 		case ROTARY_ENCODER_D:
 			param = Gen_get_carr_release(CURR_GEN);
@@ -1495,7 +1457,11 @@ void updateLCD() {
 			param = Gen_get_fm_attack(CURR_GEN);  //a
 			break;
 		case ROTARY_ENCODER_C:
-			param = Gen_get_fm_hold(CURR_GEN);  //h
+			if(is_pressed_key_SHIFT){
+				param = Gen_get_fm_slope(CURR_GEN);
+			}else{
+				param = Gen_get_fm_hold(CURR_GEN);  //h
+			}
 			break;
 		case ROTARY_ENCODER_D:
 			param = Gen_get_fm_release(CURR_GEN);  //r
@@ -1505,7 +1471,11 @@ void updateLCD() {
 	case PARAM_GROUP_BEND:
 		switch (selected_col) {
 		case ROTARY_ENCODER_A:
-			param = Gen_get_bend_amount(CURR_GEN);
+			if (is_pressed_key_SHIFT) {
+				param = Gen_get_bend_velocity_sense(CURR_GEN);
+			} else {
+				param = Gen_get_bend_amount(CURR_GEN);
+			}
 			break;
 		case ROTARY_ENCODER_B:
 			param = Gen_get_bend_attack(CURR_GEN);
@@ -1570,9 +1540,7 @@ void updateLCD() {
 				param = Gen_get_filter_amount(CURR_GEN);
 			}
 			break;
-
 		}
-
 		}
 		break;
 
@@ -1641,17 +1609,61 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 	if (USE_EXTERNAL_GATE) {
 		switch (GPIO_Pin) {
 		case TRG1_Pin:
-			Gen_trig(&synth[0]);
+			Gen_trig(&synth[0],1.0f);
 			break;
 		case TRG2_Pin:
-			Gen_trig(&synth[1]);
+			Gen_trig(&synth[1],1.0f);
 			break;
 		case TRG3_Pin:
-			Gen_trig(&synth[2]);
+			Gen_trig(&synth[2],1.0f);
 			break;
 		case TRG4_Pin:
-			Gen_trig(&synth[3]);
+			Gen_trig(&synth[3],1.0f);
 		}
+	}
+}
+
+/**
+ * On Received MIDI Signal
+ */
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+	if (huart->Instance == USART1) {
+		//RECEIVE MIDI
+		MidiParser_PushByte(tmp_byte);
+	}
+	HAL_UART_Receive_IT(&huart1, (uint8_t*)&tmp_byte, 1);
+}
+
+
+void ON_RECEIVE_NOTE_ON(uint8_t ch, uint8_t note, uint8_t velocity) {
+
+	if(velocity==0){
+		return;
+	}
+
+	float v = 1.0f;
+	switch (midiConfig.velocityCurve) {
+	case Linear:
+		v = VelocityCurve_Linear[velocity];
+		break;
+	case Exponential:
+		v = VelocityCurve_Exponential[velocity];
+		break;
+	case Fixed:
+		break;
+	}
+
+	if (midiConfig.channel_A == ch && midiConfig.noteNo_A == note) {
+		Gen_trig(&synth[0], v);
+	}
+	if (midiConfig.channel_B == ch && midiConfig.noteNo_B == note) {
+		Gen_trig(&synth[1], v);
+	}
+	if (midiConfig.channel_C == ch && midiConfig.noteNo_C == note) {
+		Gen_trig(&synth[2], v);
+	}
+	if (midiConfig.channel_D == ch && midiConfig.noteNo_D == note) {
+		Gen_trig(&synth[3], v);
 	}
 }
 
@@ -1669,7 +1681,7 @@ void StartDefaultTask(void const * argument)
   /* USER CODE BEGIN 5 */
 
 	/* Infinite loop */
-	lcdInit(&hi2c3, 0x3F, 2, 16);
+	lcdInit(&hi2c3, I2C_LCD_ADDRESS, 2, 16);
 
 	//init led
 	HAL_GPIO_WritePin(BLED7_GPIO_Port, BLED7_Pin, GPIO_PIN_SET);
@@ -1679,13 +1691,7 @@ void StartDefaultTask(void const * argument)
 
 	/* Infinite loop */
 	for (;;) {
-		osDelay(100);
-		//SHOW ADC VALUE
-		/*
-			lcdSetCursorPosition(0, 0);
-			sprintf((char*) lcd_text_buf1.text,"ADC:%-12d",(adcResult1));
-			lcdPrintStr((uint8_t*) lcd_text_buf1.text, lcd_text_buf1.length);
-		*/
+		osDelay(50);
 		if (lcd_text_buf1.dirt > 0) {
 			lcdSetCursorPosition(0, 0);
 			lcdPrintStr((uint8_t*) lcd_text_buf1.text, lcd_text_buf1.length);
