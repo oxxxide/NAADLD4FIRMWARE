@@ -62,8 +62,7 @@ float FORCE_INLINE Filter_process_no_envelope(MultiFilter* flt, float x) {
 float FORCE_INLINE Filter_process_no_envelope_w_lfo(MultiFilter* flt, float x,
 		int32_t lfo) {
 
-	uint32_t index = flt->cutoff + lfo;
-	index = LIMIT(index,127,0);
+	uint32_t index = LIMIT(flt->cutoff + lfo,127,0);
 	updateCoeffcients_temporary(flt,index);
 
 	FilterCoefficients* cf = flt->confs;

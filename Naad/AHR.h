@@ -29,12 +29,14 @@ typedef struct {
 	uint32_t hold_length;
 	uint32_t hold_count;
 
+	float sustain_level;
+
 	float out;
 	int phase;
 
 } AHR_EG;
 
-void AHR_trig(AHR_EG *ahr);
+void AHR_trig(AHR_EG *ahr, float sustain);
 
 void AHR_reset(AHR_EG *ahr);
 

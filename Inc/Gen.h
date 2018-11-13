@@ -44,18 +44,25 @@ typedef struct {
 	float mod_depth;
 	float cf_ringmod_dev; // 1/(1+mod_depth)
 
+	float bendVelAmount;
+
 	float cv; //control voltage
 
 	int modPitch;
 
-	int i_cutoff;
+	int i_bend_vel_sense;
 
-	//int i_filter_env_amount;
+	int i_cutoff;
 
 	int i_fm_harmonics;
 
+	//Level
+	int i_level;
+	int i_noise_level;
+
 	//Pan
 	int i_pan;
+
 	float cof_pan_l;
 	float cof_pan_r;
 } Gen;
@@ -65,7 +72,7 @@ extern float adcValue2;
 extern float adcValue3;
 extern float adcValue4;
 
-void Gen_trig(Gen *gen);
+void Gen_trig(Gen *gen, float velocity);
 
 void Gen_init(Gen *gen);
 
@@ -145,6 +152,10 @@ void Gen_set_bend_amount(Gen *gen, int v);
 
 int Gen_get_bend_amount(Gen *gen);
 
+void Gen_set_bend_velocity_sense(Gen *gen, int v);
+
+int Gen_get_bend_velocity_sense(Gen *gen);
+
 void Gen_set_bend_attack(Gen *gen, int v);
 
 int Gen_get_bend_attack(Gen *gen);
@@ -217,7 +228,7 @@ void Gen_set_lfo_depth(Gen* gen, uint8_t v);
 
 void Gen_set_lfo_dest(Gen* gen, uint8_t v);
 
-void Gen_set_pan(Gen* gen, int8_t v);
+void Gen_set_pan(Gen* gen, int v);
 
 void preset_kikck(Gen* gen);
 

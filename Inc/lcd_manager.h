@@ -20,6 +20,7 @@
 #define PARAM_GROUP_LFO 6
 
 #define NUM_OF_GROUP 7
+#define NUM_OF_COLUMN 4
 
 #define CLOCK_SOURCE_INTERNAL 1
 #define CLOCK_SOURCE_EXTERNAL 2
@@ -42,8 +43,8 @@ extern volatile LCDBUFF lcd_text_buf1;
 extern volatile LCDBUFF lcd_text_buf2;
 
 extern const char* LCDM_EDIT_GROUP_TEXT[NUM_OF_GROUP];
-extern const char* LCDM_PARAMETER_TEXT[7][4];
-extern const char* LCDM_PARAMETER_TEXT_SHIFT[7][4];
+extern const char* LCDM_PARAMETER_TEXT[NUM_OF_GROUP][NUM_OF_COLUMN];
+extern const char* LCDM_PARAMETER_TEXT_SHIFT[NUM_OF_GROUP][NUM_OF_COLUMN];
 
 void InitLcdManager(void);
 void lcdWriteText(int row, const char* str,int length);

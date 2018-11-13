@@ -88,6 +88,8 @@ void ToneCopyFromGen(Tone* dest, Gen* src) {
 	//routinng
 	dest->mod_type = (uint8_t)Gen_get_modtype(src);
 
+	dest->panpot = src->i_pan;
+
 }
 
 void ToneCopyToGen(Gen* dest, Tone* src) {
@@ -142,6 +144,7 @@ void ToneCopyToGen(Gen* dest, Tone* src) {
 
 	//routing
 	Gen_set_modtype(dest,src->mod_type);
+	Gen_set_pan(dest,src->panpot);
 }
 
 Tone tones[16] = {0};

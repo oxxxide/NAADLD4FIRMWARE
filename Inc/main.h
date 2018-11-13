@@ -59,26 +59,22 @@
 
 /* Private define ------------------------------------------------------------*/
 
-#define TRG2_Pin GPIO_PIN_2
-#define TRG2_GPIO_Port GPIOE
-#define TRG2_EXTI_IRQn EXTI2_IRQn
-#define TRG3_Pin GPIO_PIN_3
-#define TRG3_GPIO_Port GPIOE
-#define TRG3_EXTI_IRQn EXTI3_IRQn
-#define TRG1_Pin GPIO_PIN_4
+#define TRG1_Pin GPIO_PIN_2
 #define TRG1_GPIO_Port GPIOE
-#define TRG1_EXTI_IRQn EXTI4_IRQn
+#define TRG1_EXTI_IRQn EXTI2_IRQn
+#define TRG2_Pin GPIO_PIN_3
+#define TRG2_GPIO_Port GPIOE
+#define TRG2_EXTI_IRQn EXTI3_IRQn
+#define TRG3_Pin GPIO_PIN_4
+#define TRG3_GPIO_Port GPIOE
+#define TRG3_EXTI_IRQn EXTI4_IRQn
 #define TRG4_Pin GPIO_PIN_5
 #define TRG4_GPIO_Port GPIOE
 #define TRG4_EXTI_IRQn EXTI9_5_IRQn
-#define GPIO_ADCSW1_Pin GPIO_PIN_6
-#define GPIO_ADCSW1_GPIO_Port GPIOE
-#define GPIO_ADCSW2_Pin GPIO_PIN_13
-#define GPIO_ADCSW2_GPIO_Port GPIOC
-#define GPIO_ADCSW3_Pin GPIO_PIN_14
-#define GPIO_ADCSW3_GPIO_Port GPIOC
-#define GPIO_ADCSW4_Pin GPIO_PIN_15
-#define GPIO_ADCSW4_GPIO_Port GPIOC
+#define GPIO_EXTSW1_Pin GPIO_PIN_6
+#define GPIO_EXTSW1_GPIO_Port GPIOE
+#define GPIO_EXTSW2_Pin GPIO_PIN_13
+#define GPIO_EXTSW2_GPIO_Port GPIOC
 #define RoEncA1_Pin GPIO_PIN_2
 #define RoEncA1_GPIO_Port GPIOC
 #define RoEncA2_Pin GPIO_PIN_3
@@ -167,7 +163,17 @@
 #define ADC_SAMPLE_LENGTH 4
 #define USE_CV_IN 1
 #define USE_EXTERNAL_GATE 1
+
+//System Info
+#define FIRMWARE_VERSION "1.00"
+
+//#define I2C_LCD_ADDRESS 0x27 /*PCF8574T*/
+#define I2C_LCD_ADDRESS 0x3F /*PCF8574A*/
+
 #define LIMIT(v,max,min)( (v)>(max) ? (max) : ( (v)<(min) ? (min):(v) ) )
+
+volatile float cv1,cv2,cv3,cv4;
+
 void updateEncodersState(void);
 void restoreFactorySet(void);
 /* USER CODE END Private defines */

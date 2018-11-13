@@ -8,7 +8,8 @@
 #include "AHR.h"
 
 
-void FORCE_INLINE AHR_trig(AHR_EG *ahr) {
+void FORCE_INLINE AHR_trig(AHR_EG *ahr,float sustain) {
+	ahr->sustain_level = sustain;
     ahr->phase = PHASE_A;
     ahr->hold_count = ahr->hold_length;
 }
@@ -56,8 +57,8 @@ float FORCE_INLINE AHR_proc(AHR_EG *ahr) {
 	switch (ahr->phase) {
 	case PHASE_A:
 		ahr->out += ahr->attack_delta;
-		if (ahr->out >= 1.0f) {
-			ahr->out = 1.0f;
+		if (ahr->out >= ahr->sustain_level) {
+			ahr->out = ahr->sustain_level;
 			ahr->phase = PHASE_H;
 		}
 		break;
@@ -94,6 +95,7 @@ void AHR_Init(AHR_EG *ahr) {
 	ahr->phase = PHASE_N;
 	ahr->i_slope = 0;
 	ahr->h_value_slope_endpoint = 1.0f;
+	ahr->sustain_level = 1.0f;
 
 
 	AHR_set_attack(ahr,0);

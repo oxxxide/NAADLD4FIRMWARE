@@ -8,8 +8,8 @@
 #include "FastMath_.h"
 #include "Decay.h"
 
-void FORCE_INLINE Decay_trig(Decay* d) {
-	d->out = 1.0f;
+void FORCE_INLINE Decay_trig(Decay* d, float max) {
+	d->out = max;
 }
 
 void FORCE_INLINE Decay_set_Decay(Decay* d, int _value) {

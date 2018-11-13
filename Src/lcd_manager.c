@@ -11,26 +11,26 @@
 volatile LCDBUFF lcd_text_buf1;
 volatile LCDBUFF lcd_text_buf2;
 
-const char* LCDM_EDIT_GROUP_TEXT[NUM_OF_GROUP] = {"OSC","AMP","MOD","BEND","NOISE","FILTER","LFO"};
+const char* LCDM_EDIT_GROUP_TEXT[NUM_OF_GROUP] = {"OSCILATOR","AMPLIFIER","MODULATOR","BEND","NOISE","FILTER","LFO"};
 
-const char* LCDM_PARAMETER_TEXT[7][4] = {
+const char* LCDM_PARAMETER_TEXT[NUM_OF_GROUP][NUM_OF_COLUMN] = {
 		{ "Wave", "Pitch", "Mod-Depth", "Mod-Type" },
 		{ "Level", "Attack", "Hold", "Release" },
 		{ "Frequency", "Attack", "Hold", "Release" },
 		{ "Amount", "Attack", "Hold", "Release" },
 		{ "Level", "Attack", "Hold", "Release" },
 		{ "Type", "Cutoff", "Resonance", "Env-Amount" },
-		{ "Destination", "Wave", "Speed", "Depth" }
+		{ "Dest", "Wave", "Speed", "Depth" }
 };
 
-const char* LCDM_PARAMETER_TEXT_SHIFT[7][4] = {
+const char* LCDM_PARAMETER_TEXT_SHIFT[NUM_OF_GROUP][NUM_OF_COLUMN] = {
 		{ "Wave", "Fine Tune", "Mod-Depth", "Mod-Type" },
 		{ "PAN", "Attack", "Slope", "Release" },
 		{ "Frequency", "Attack", "Slope", "Release" },
-		{ "Velocity Sense", "Attack", "Slope", "Release" },
+		{ "Vel-Sense", "Attack", "Slope", "Release" },
 		{ "Level", "Attack", "Slope", "Release" },
 		{ "Type", "Cutoff", "Resonance", "Env-Decay" },
-		{ "Destination", "Wave", "Speed", "Depth" }
+		{ "Dest", "Wave", "Speed", "Depth" }
 };
 
 void InitLcdManager() {
