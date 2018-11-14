@@ -1637,7 +1637,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 
 void ON_RECEIVE_NOTE_ON(uint8_t ch, uint8_t note, uint8_t velocity) {
 
-	if(velocity==0){
+	if (velocity == 0) {
 		return;
 	}
 
@@ -1666,6 +1666,189 @@ void ON_RECEIVE_NOTE_ON(uint8_t ch, uint8_t note, uint8_t velocity) {
 		Gen_trig(&synth[3], v);
 	}
 }
+
+void ON_RECEIVE_CONTROL_CHANGE(uint8_t ch, uint8_t no, uint8_t value) {
+
+	for (int i = 0; i < 4; i++) {
+		Gen* g = &synth[i];
+
+		switch (i) {
+		case 0:
+			if (midiConfig.channel_A == ch) {
+				break;
+			} else {
+				continue;
+			}
+		case 1:
+			if (midiConfig.channel_B == ch) {
+				break;
+			} else {
+				continue;
+			}
+		case 2:
+			if (midiConfig.channel_C == ch) {
+				break;
+			} else {
+				continue;
+			}
+		case 3:
+			if (midiConfig.channel_D == ch) {
+				break;
+			} else {
+				continue;
+			}
+		}
+
+		switch (no) {
+		case CCNo_VOLUME:
+			//TODO
+			break;
+
+		case CCNo_EXPRESSION:
+			//TODO
+			break;
+
+		case CCNo_OSC_WAVE:
+			Gen_set_carr_wave(g, value); /*TOD convert enum*/
+			break;
+
+		case CCNo_OSC_PITCH:
+			Gen_set_carr_coarse(g, value);
+			break;
+
+		case CCNo_OSC_FINE:
+			Gen_set_carr_fine(g, value);
+			break;
+
+		case CCNo_OSC_MOD_DEPTH:
+			Gen_set_carr_moddepth(g, value);
+			break;
+
+		case CCNo_OSC_MOD_TYPE:
+			//TODO
+			break;
+
+		case CCNo_AMP_LEVEL:
+			Gen_set_carr_level(g, value);
+			break;
+
+		case CCNo_AMP_PANPOT:
+			Gen_set_pan(g, value); //TODO FIX NEGATIVE VALUE
+			break;
+
+		case CCNo_AMP_ENV_ATK:
+			Gen_set_carr_attack(g, value);
+			break;
+
+		case CCNo_AMP_ENV_HLD:
+			Gen_set_carr_hold(g, value);
+			break;
+
+		case CCNo_AMP_ENV_SLP:
+			Gen_set_carr_slope(g, value);
+			break;
+
+		case CCNo_AMP_ENV_REL:
+			Gen_set_carr_release(g, value);
+			break;
+
+		case CCNo_BEND_AMT:
+			Gen_set_bend_amount(g, value);
+			break;
+
+		case CCNo_BEND_VELSENSE:
+			Gen_set_bend_velocity_sense(g, value);
+			break;
+
+		case CCNo_BEND_ENV_ATK:
+			Gen_set_bend_attack(g, value);
+			break;
+
+		case CCNo_BEND_ENV_HLD:
+			Gen_set_bend_hold(g, value);
+			break;
+
+		case CCNo_BEND_ENV_SLP:
+			Gen_set_bend_slope(g, value);
+			break;
+
+		case CCNo_BEND_ENV_REL:
+			Gen_set_bend_release(g, value);
+			break;
+
+		case CCNo_NOISE_LEVEL:
+			Gen_set_noise_level(g, value);
+			break;
+
+		case CCNo_NOISE_ENV_ATK:
+			Gen_set_noise_attack(g, value);
+			break;
+
+		case CCNo_NOISE_ENV_HLD:
+			Gen_set_noise_hold(g, value);
+			break;
+
+		case CCNo_NOISE_ENV_SLP:
+			Gen_set_noise_slope(g, value);
+			break;
+
+		case CCNo_NOISE_ENV_REL:
+			Gen_set_noise_release(g, value);
+			break;
+
+		case CCNo_FLT_TYPE:
+			Gen_set_filter_type(g, value);
+			break;
+
+		case CCNo_FLT_CUTOFF:
+			Gen_set_filter_cutoff(g, value);
+			break;
+
+		case CCNo_FLT_RESO:
+			Gen_set_filter_resonance(g, value);
+			break;
+
+		case CCNo_FLT_AMOUNT:
+			Gen_set_filter_amount(g, value);
+			break;
+
+		case CCNo_FLT_DECAY:
+			Gen_set_filter_decay(g, value);
+			break;
+
+		case CCNo_LFO_DEST:
+			Gen_set_lfo_dest(g, value);
+			break;
+
+		case CCNo_LFO_WAVE:
+		{
+			LFO_WAVEFORM wv;
+			switch(value){
+			case LFO_SIN:
+				wv = LFO_SIN;
+				break;
+			case LFO_TRI:
+				wv = LFO_TRI;
+				break;
+			default:
+				wv = LFO_SIN;
+				break;
+			}
+			LFO_setWave(&(g->lfo), wv);
+		}
+			break;
+
+		case CCNo_LFO_SPEED:
+			Gen_set_lfo_speed(g, value);
+			break;
+
+		case CCNo_LFO_DEPTH:
+			Gen_set_lfo_depth(g, value);
+			break;
+		}
+	}
+}
+
 
 void restoreFactorySet(void){
 
