@@ -2,7 +2,7 @@
  * Tone.h
  *
  *  Created on: 2018/07/19
- *      Author: devox
+ *      Author: NishiAsakusa Audio Developments / oxxxide / Akikazu Iwasa
  */
 
 #ifndef TONE_H_
@@ -35,6 +35,7 @@ typedef struct {
 
 	//BEND
 	uint8_t bend_amount;
+	uint8_t bend_vel_sense;
 	uint8_t bend_env_a;
 	uint8_t bend_env_h;
 	uint8_t bend_env_s;

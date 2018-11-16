@@ -2,7 +2,7 @@
  * Gen.h
  *
  *  Created on: 2017/11/23
- *      Author: devox
+ *      Author: NishiAsakusa Audio Developments / oxxxide / Akikazu Iwasa
  */
 
 #ifndef GEN_H_

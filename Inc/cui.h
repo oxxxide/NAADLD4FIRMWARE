@@ -2,7 +2,7 @@
  * cui.h
  *
  *  Created on: 2018/06/28
- *      Author: devox
+ *      Author: NishiAsakusa Audio Developments / oxxxide / Akikazu Iwasa
  */
 
 #ifndef CUI_H_
@@ -14,13 +14,15 @@
 #define LCD_STATE_DEFAULT 0
 #define LCD_STATE_MENU 1
 #define LCD_STATE_SEQ 2
-#define LCD_STATE_MIDI 3
+//#define LCD_STATE_MIDI 3
 #define LCD_STATE_SYNC 4
 #define LCD_STATE_TRIG 5
 #define LCD_STATE_LOAD_PROGRAM 6
 #define LCD_STATE_SAVE_PROGRAM 7
 #define LCD_STATE_MONITOR_CV 8
-#define LCD_STATE_FACTORY_RESET 8
+#define LCD_STATE_FACTORY_RESET_CONFIRM 9
+
+#define LCD_STATE_MIDI_RECEIVE_CONFIG 10
 
 #define ITEM_INDEX_SEQ 0
 #define ITEM_INDEX_SYNC 1
@@ -33,9 +35,6 @@
 #define MENU_TEXTS_2 " MIDI   TRIG    "
 #define MENU_TEXTS_3 " MONITOR CV-IN  "
 #define MENU_TEXTS_4 " RESTORE FS     "
-
-#define MENU_MIDI_TEXT_1 "MIDI Prt Ch Note"
-#define MENU_MIDI_TEXT_2 "RECV   %c %2d  %3d"
 
 #define MENU_SYNC_TEXT_1 "SYNC MODE:      "
 
@@ -56,11 +55,6 @@
 #define CLOCK_OUT_DISABLE 0
 
 typedef struct {
-	uint8_t channel;
-	uint8_t noteNo;
-} ChannelConfig;
-
-typedef struct {
 	uint8_t clockSource;
 	uint8_t outClock;
 	uint16_t BPM;
@@ -69,9 +63,10 @@ typedef struct {
 
 extern uint8_t LcdMenuSelectedItemIndex;
 extern uint8_t LcdMenuState;
-extern uint8_t SelectedPartNo;
+
+
 extern uint8_t is_pressed_key_SHIFT;
-extern ChannelConfig ChannelConfigs[4];
+
 extern MidiSyncConfig midiSyncConfig;
 
 
@@ -81,10 +76,11 @@ extern const char* PresetTones[16];
 
 void SelectMenu(int add);
 
-void MIDIConfig_Show(void);
-void MIDIConfig_ChangeNt(int add);
-void MIDIConfig_ChangeCh(int add);
-void MIDIConfig_ChangePt(int add);
+void MIDIConfig_Show(MidiConfig* midiConfig);
+
+void MIDIConfig_ChangeNt(MidiConfig* midiConfig, int add);
+void MIDIConfig_ChangeCh(MidiConfig* midiConfig, int add);
+void MIDIConfig_DisplayChannel(MidiConfig* midiConfig ,int add);
 
 void SyncConfig_Show(void);
 void SyncConfig_ChangeSync(void);
@@ -93,5 +89,6 @@ void TriggerConfig_Show(void);
 void TriggerConfig_Change(int add);
 
 void CV_Monitor_Show(void);
+void ConfirmFactoryReset(void);
 
 #endif /* CUI_H_ */

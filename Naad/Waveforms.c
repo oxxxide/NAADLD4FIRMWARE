@@ -2,7 +2,7 @@
  * Waveforms.c
  *
  *  Created on: 2018/06/08
- *      Author: devox
+ *      Author: NishiAsakusa Audio Developments / oxxxide / Akikazu Iwasa
  */
 
 #include "Waveforms.h"

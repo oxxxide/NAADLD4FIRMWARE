@@ -2,7 +2,7 @@
  * interruptsconfig.h
  *
  *  Created on: 2018/05/09
- *      Author: devox
+ *      Author: NishiAsakusa Audio Developments / oxxxide / Akikazu Iwasa
  */
 
 #ifndef BUTTONCONFIG_H_

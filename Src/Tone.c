@@ -2,7 +2,7 @@
  * Tone.c
  *
  *  Created on: 2018/07/19
- *      Author: devox
+ *      Author: NishiAsakusa Audio Developments / oxxxide / Akikazu Iwasa
  */
 
 #include <string.h>
@@ -64,6 +64,7 @@ void ToneCopyFromGen(Tone* dest, Gen* src) {
 	dest->bend_env_h = Gen_get_bend_hold(src);
 	dest->bend_env_s = Gen_get_bend_slope(src);
 	dest->bend_env_r = Gen_get_bend_release(src);
+	dest->bend_vel_sense = Gen_get_bend_velocity_sense(src);
 
 	//NOISE
 	dest->noise_level = Gen_get_noise_level(src);
@@ -87,7 +88,6 @@ void ToneCopyFromGen(Tone* dest, Gen* src) {
 
 	//routinng
 	dest->mod_type = (uint8_t)Gen_get_modtype(src);
-
 	dest->panpot = src->i_pan;
 
 }
@@ -120,6 +120,7 @@ void ToneCopyToGen(Gen* dest, Tone* src) {
 	Gen_set_bend_hold(dest, src->bend_env_h);
 	Gen_set_bend_slope(dest, src->bend_env_s);
 	Gen_set_bend_release(dest, src->bend_env_r);
+	Gen_set_bend_velocity_sense(dest, src->bend_vel_sense);
 
 	//NOISE
 	Gen_set_noise_level(dest,src->noise_level);

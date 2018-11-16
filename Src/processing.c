@@ -2,7 +2,7 @@
  * processing.c
  *
  *  Created on: 2018/06/16
- *      Author: devox
+ *      Author: NishiAsakusa Audio Developments / oxxxide / Akikazu Iwasa
  */
 
 #include "stm32f4xx_hal.h"

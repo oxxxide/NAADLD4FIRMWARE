@@ -2,7 +2,7 @@
  * Renc.h
  *
  *  Created on: 2017/11/26
- *      Author: devox
+ *      Author: NishiAsakusa Audio Developments / oxxxide / Akikazu Iwasa
  */
 
 #ifndef R_ENCODER_H_

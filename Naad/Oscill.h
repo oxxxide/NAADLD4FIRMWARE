@@ -2,7 +2,7 @@
  * Osc.h
  *
  *  Created on: 2017/11/24
- *      Author: devox
+ *      Author: NishiAsakusa Audio Developments / oxxxide / Akikazu Iwasa
  */
 
 #ifndef OSCIL_H_

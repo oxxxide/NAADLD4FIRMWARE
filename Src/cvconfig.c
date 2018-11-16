@@ -2,7 +2,7 @@
  * cvconfig.c
  *
  *  Created on: 2018/07/14
- *      Author: devox
+ *      Author: NishiAsakusa Audio Developments / oxxxide / Akikazu Iwasa
  */
 
 #include "cvconfig.h"

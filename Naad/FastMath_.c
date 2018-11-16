@@ -2,7 +2,7 @@
  * FastMath.c
  *
  *  Created on: 2017/12/19
- *      Author: devox
+ *      Author: NishiAsakusa Audio Developments / oxxxide / Akikazu Iwasa
  */
 
 #include "FastMath_.h"

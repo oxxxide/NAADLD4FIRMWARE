@@ -2,7 +2,7 @@
  * lcd_manager.c
  *
  *  Created on: 2018/06/23
- *      Author: devox
+ *      Author: NishiAsakusa Audio Developments / oxxxide / Akikazu Iwasa
  */
 
 #include "lcd_manager.h"

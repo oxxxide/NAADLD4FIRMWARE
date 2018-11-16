@@ -2,7 +2,7 @@
  * MidiConfig.c
  *
  *  Created on: 2018/06/28
- *      Author: devox
+ *      Author: NishiAsakusa Audio Developments / oxxxide / Akikazu Iwasa
  */
 
 #include "MidiConfig.h"

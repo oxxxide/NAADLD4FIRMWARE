@@ -2,7 +2,7 @@
  * buttonconfig.c
  *
  *  Created on: 2018/06/26
- *      Author: devox
+ *      Author: NishiAsakusa Audio Developments / oxxxide / Akikazu Iwasa
  */
 
 #include "buttonconfig.h"

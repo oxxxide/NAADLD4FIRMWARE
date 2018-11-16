@@ -2,7 +2,7 @@
  * FilterCoefficientsDefine.c
  *
  *  Created on: 2018/07/17
- *      Author: devox
+ *      Author: NishiAsakusa Audio Developments / oxxxide / Akikazu Iwasa
  */
 
 #include "MultiFilter.h"

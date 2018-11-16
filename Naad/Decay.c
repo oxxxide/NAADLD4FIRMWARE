@@ -2,7 +2,7 @@
  * Decay.c
  *
  *  Created on: 2018/06/24
- *      Author: devox
+ *      Author: NishiAsakusa Audio Developments / oxxxide / Akikazu Iwasa
  */
 
 #include "FastMath_.h"
