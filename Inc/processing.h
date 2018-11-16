@@ -2,7 +2,7 @@
  * processing.h
  *
  *  Created on: 2018/06/16
- *      Author: devox
+ *      Author: NishiAsakusa Audio Developments / oxxxide / Akikazu Iwasa
  */
 
 #ifndef PROCESSING_H_

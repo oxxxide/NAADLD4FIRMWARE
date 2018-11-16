@@ -2,7 +2,7 @@
  * MultiFilter.c
  *
  *  Created on: 2018/06/24
- *      Author: devox
+ *      Author: NishiAsakusa Audio Developments / oxxxide / Akikazu Iwasa
  */
 
 #include "MultiFilter.h"
@@ -77,13 +77,10 @@ float FORCE_INLINE Filter_process_no_envelope_w_lfo(MultiFilter* flt, float x,
 }
 
 float FORCE_INLINE Filter_process(MultiFilter* flt, float x, float egv) {
-
 	if (flt->filter_type == BYPASS) {
 		return x;
 	}
-
 	FilterCoefficients* cf = flt->confs;
-
 	float y = (cf->b0 / cf->a0) * x + (cf->b1 / cf->a0) * flt->x1
 			+ (cf->b2 / cf->a0) * flt->x2 - (cf->a1 / cf->a0) * flt->y1
 			- (cf->a2 / cf->a0) * flt->y2;

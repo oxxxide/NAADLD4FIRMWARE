@@ -2,13 +2,14 @@
  * I2CFlash.h
  *
  *  Created on: 2018/09/23
- *      Author: devox
+ *      Author: NishiAsakusa Audio Developments / oxxxide / Akikazu Iwasa
  */
 
 #ifndef I2CFLASH_H_
 #define I2CFLASH_H_
 
 #include "stm32f4xx_hal.h"
+#include "MidiConfig.h"
 
 typedef struct {
 	I2C_HandleTypeDef *pI2C;
@@ -34,5 +35,10 @@ HAL_StatusTypeDef I2CFlash_Write(I2C_EEPROM* instance, uint16_t memAddress,
 
 HAL_StatusTypeDef I2CFlash_Read(I2C_EEPROM* instance, uint16_t memAddress1,
 		uint8_t *pData, uint16_t size);
+
+HAL_StatusTypeDef I2CFlash_SaveMidiConfig(I2C_EEPROM* instance,
+		MidiConfig* midiconfig);
+
+HAL_StatusTypeDef I2CFlash_FactoryReset(I2C_EEPROM* instance);
 
 #endif /* I2CFLASH_H_ */

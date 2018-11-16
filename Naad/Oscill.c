@@ -2,7 +2,7 @@
  * Osc.c
  *
  *  Created on: 2018/05/24
- *      Author: devox
+ *      Author: NishiAsakusa Audio Developments / oxxxide / Akikazu Iwasa
  */
 
 

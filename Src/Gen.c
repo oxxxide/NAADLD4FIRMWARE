@@ -2,7 +2,7 @@
  * Gen.c
  *
  *  Created on: 2018/05/18
- *      Author: devox
+ *      Author: NishiAsakusa Audio Developments / oxxxide / Akikazu Iwasa
  */
 
 #include "Gen.h"

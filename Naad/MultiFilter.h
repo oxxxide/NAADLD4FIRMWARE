@@ -2,7 +2,7 @@
  * MultiFilter.h
  *
  *  Created on: 2017/12/19
- *      Author: devox
+ *      Author: NishiAsakusa Audio Developments / oxxxide / Akikazu Iwasa
  */
 
 #ifndef MULTIFILTER_H_

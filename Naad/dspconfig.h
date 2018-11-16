@@ -2,7 +2,7 @@
  * dspconfig.h
  *
  *  Created on: 2017/12/03
- *      Author: devox
+ *      Author: NishiAsakusa Audio Developments / oxxxide / Akikazu Iwasa
  */
 
 #ifndef DSPCONFIG_H_

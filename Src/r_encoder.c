@@ -2,7 +2,7 @@
  * r_encoder.c
  *
  *  Created on: 2018/06/22
- *      Author: devox
+ *      Author: NishiAsakusa Audio Developments / oxxxide / Akikazu Iwasa
  */
 
 #include "r_encoder.h"
@@ -86,8 +86,8 @@ void InitRotaryEncoders() {
 }
 
 int Renc_read(Renc *renc) {
-	uint32_t a = (uint32_t) HAL_GPIO_ReadPin(renc->port1, renc->pin1); //A‘Š
-	uint32_t b = (uint32_t) HAL_GPIO_ReadPin(renc->port2, renc->pin2); //B‘Š
+	uint32_t a = (uint32_t) HAL_GPIO_ReadPin(renc->port1, renc->pin1); //Aï¿½ï¿½
+	uint32_t b = (uint32_t) HAL_GPIO_ReadPin(renc->port2, renc->pin2); //Bï¿½ï¿½
 	renc->data = (renc->data << 2) | (a << 1) | b;
 	renc->data &= 0xF;
 	int retval = 0;
