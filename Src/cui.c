@@ -33,7 +33,9 @@ const char* PresetTones[16] = {
 };
 
 uint8_t LcdMenuSelectedItemIndex = 0;
-uint8_t LcdMenuState = LCD_STATE_DEFAULT;
+int ProgramMenuSelectedItemIndex = 0;
+
+volatile uint8_t LcdMenuState = LCD_STATE_DEFAULT;
 uint8_t is_pressed_key_SHIFT = 0;
 
 
@@ -43,7 +45,6 @@ MidiSyncConfig midiSyncConfig = {CLOCK_SOURCE_INTERNAL,CLOCK_OUT_DISABLE,120};
 uint8_t triggerThreshold = 0;
 
 void SelectMenu(int add) {
-
 	int tmp = LcdMenuSelectedItemIndex;
 	if (add > 0) {
 		tmp++;
@@ -62,19 +63,19 @@ void SelectMenu(int add) {
 	switch (LcdMenuSelectedItemIndex) {
 	case 0:
 		lcdWriteText(0,"~SEQ    SYNC    ",16);
-		lcdWriteText(1," MIDI   TRIG    ",16);
+		lcdWriteText(1," MIDI   VELC    ",16);
 		break;
 	case 1:
 		lcdWriteText(0," SEQ   ~SYNC    ",16);
-		lcdWriteText(1," MIDI   TRIG    ",16);
+		lcdWriteText(1," MIDI   VELC    ",16);
 		break;
 	case 2:
 		lcdWriteText(0," SEQ    SYNC    ",16);
-		lcdWriteText(1,"~MIDI   TRIG    ",16);
+		lcdWriteText(1,"~MIDI   VELC    ",16);
 		break;
 	case 3:
 		lcdWriteText(0," SEQ    SYNC    ",16);
-		lcdWriteText(1," MIDI  ~TRIG    ",16);
+		lcdWriteText(1," MIDI  ~VELC    ",16);
 		break;
 	case 4:
 		lcdWriteText(0,"~CV Monitor     ",16);
@@ -89,10 +90,8 @@ void SelectMenu(int add) {
 
 void MIDIConfig_Show(MidiConfig* midiConfig) {
 	LcdMenuState = LCD_STATE_MIDI_RECEIVE_CONFIG;
-
 	char buff1[17];
 	char buff2[17];
-
 	uint8_t ch = 0;
 	uint8_t nn = 0;
 	switch(displayChannel){
@@ -113,7 +112,6 @@ void MIDIConfig_Show(MidiConfig* midiConfig) {
 		nn = midiConfig->noteNo_D;
 		break;
 	}
-
 	sprintf(buff1, "Ch.%c MidiCh Note", displayChannel);
 	sprintf(buff2, "         %2d  %3d", ch + 1, nn);
 	lcdWriteText(0, buff1, 16);
@@ -166,6 +164,52 @@ void MIDIConfig_DisplayChannel(MidiConfig* midiConfig, int add) {
 	}
 	displayChannel = ch;
 	MIDIConfig_Show(midiConfig);
+}
+
+void MIDIConfig_velocity_curve(MidiConfig* midiConfig, int add) {
+	LcdMenuState = LCD_STATE_VELC;
+	int v = midiConfig->velocityCurve + add;
+	midiConfig->velocityCurve = (VelocityCurve) LIMIT(v, Fixed, Exponential);
+	lcdWriteText(0, "Velocity Curve  ", 16);
+	switch (midiConfig->velocityCurve) {
+	case Exponential:
+		lcdWriteText(1, "~Exponential    ", 16);
+		break;
+	case Linear:
+		lcdWriteText(1, "~Linear         ", 16);
+		break;
+	case Fixed:
+		lcdWriteText(1, "~Fixed          ", 16);
+		break;
+	}
+}
+
+void ShowProgramMenu(int add) {
+
+	LcdMenuState = LCD_STATE_PROGRAM_MENU;
+
+	ProgramMenuSelectedItemIndex += add;
+	if (ProgramMenuSelectedItemIndex > 2) {
+		ProgramMenuSelectedItemIndex = 0;
+	} else if (ProgramMenuSelectedItemIndex < 0) {
+		ProgramMenuSelectedItemIndex = 2;
+	}
+
+	switch (ProgramMenuSelectedItemIndex) {
+	case 0:
+		lcdWriteText(0, "~Temporary save ", 16);
+		lcdWriteText(1, " Store Program  ", 16);
+		break;
+	case 1:
+		lcdWriteText(0, " Temporary save ", 16);
+		lcdWriteText(1, "~Store Program  ", 16);
+		break;
+	case 2:
+		lcdWriteText(0, "~Load  Program  ", 16);
+		lcdWriteText(1, "                ", 16);
+		break;
+	}
+
 }
 
 void SyncConfig_Show(){

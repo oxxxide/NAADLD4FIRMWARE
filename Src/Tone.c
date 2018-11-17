@@ -11,6 +11,19 @@
 #include "processing.h"
 #include "I2CFlash.h"
 
+HAL_StatusTypeDef TemporarySave(I2C_EEPROM* eeprom, Tone* data) {
+	int size = sizeof(Tone);
+	HAL_StatusTypeDef ret = HAL_ERROR;
+	for (int i = 0; i < 4; i++) {
+		ret = I2CFlash_Write(eeprom,
+				ROM_ADDRESS_TONE_FACTORY + (i * 64), (uint8_t*) &(data[i]), size);
+		if (ret != HAL_OK) {
+			return ret;
+		}
+	}
+	return ret;
+}
+
 HAL_StatusTypeDef SaveTone(I2C_EEPROM* eeprom, int programNumber, Tone* data) {
 	if (programNumber < 0 || programNumber > 127) {
 		return HAL_ERROR;

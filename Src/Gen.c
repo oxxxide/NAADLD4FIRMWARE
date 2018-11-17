@@ -48,9 +48,6 @@ void Gen_init(Gen *gen) {
 
 	LFO_Init(&gen->lfo);
 
-	//gen->i_pan = 0;
-	//gen->cof_pan_l = 1.0f;
-	//gen->cof_pan_r = 1.0f;
 }
 
 float FORCE_INLINE Gen_process_fm(Gen *gen, float cv) {
