@@ -6,3 +6,6 @@ This is an official firmware of "LD4" by NAAD http://naad.tokyo/
 - STM32CubeMX https://www.st.com/ja/development-tools/stm32cubemx.html
 - STM32 ST-LINK utility https://www.st.com/ja/development-tools/stsw-link004.html
 
+# Target MCU
+- STM32F407VGT6 https://www.stmcu.jp/stm32/stm32f4/stm32f407417/12239/
+
