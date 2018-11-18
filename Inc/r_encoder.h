@@ -20,8 +20,6 @@
 #define COL_LEFT_EDGE 1
 #define COL_RIGHT_EDGE 4
 
-extern volatile uint64_t timestamp;
-
 typedef struct {
 	uint8_t id;
 	int8_t max;
@@ -36,6 +34,10 @@ typedef struct {
 	void (*onChange)(int id, int add);
 } Renc;
 
+extern Renc encoders[6];
+
+extern volatile uint64_t timestamp;
+
 void onChangeRE_S(int id, int add);
 
 void onChangeRE_A(int id, int add);
@@ -47,8 +49,6 @@ void onChangeRE_C(int id, int add);
 void onChangeRE_D(int id, int add);
 
 void onChangeRE_E(int id, int add);
-
-extern Renc encoders[6];
 
 void InitRotaryEncoders(void);
 

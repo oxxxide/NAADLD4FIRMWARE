@@ -869,8 +869,8 @@ void onChangeRE_A(int id, int add) {
 	}
 		break;
 	case PARAM_GROUP_LFO: {
-		int d = LFO_getDest(CURR_GEN.lfo) + (add > 0 ? 1 : -1);
-		d = LIMIT(d, 0, 0);
+		int d = (int) (LFO_getDest( &(synth[SelectedChannel].lfo) ) + (add > 0 ? 1 : -1));
+		d = LIMIT(d, 3, 0);
 		Gen_set_lfo_dest(CURR_GEN, d);
 	}
 	break;

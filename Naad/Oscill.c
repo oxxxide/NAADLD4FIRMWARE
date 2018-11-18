@@ -85,14 +85,50 @@ FORCE_INLINE float Osc_proc(Oscill *osc) {
 	return osc->waveArray[osc->phase>>16];
 }
 
-FORCE_INLINE float  Osc_proc_bend_fm_lfo(Oscill *osc, float offset ,float modAmount, float pMod,
-		float lfo ) {
+FORCE_INLINE float Osc_proc_lfo(Oscill *osc, LFO* lfo) {
+	float lfoval = LFO_proc_exp(lfo);
+	osc->phase += (uint32_t)(osc->delta*lfoval);
+	osc->phase &= MASK_VALUE_FIXEDPOINT_4_16;
+	return osc->waveArray[osc->phase >> 16];
+}
 
-	uint32_t cvDelta = osc->delta  * offset;
-
-	float exp = Table_Exponential_ex2 [(int)(pMod*1024+1024)];
-	uint32_t d = (uint32_t) (((float) cvDelta + (modAmount * osc->modDelta)) * exp);
+FORCE_INLINE float Osc_proc_bend(Oscill *osc, float offset, float bend, float pMod) {
+	uint32_t cvDelta = osc->delta * offset;
+	uint32_t d = (uint32_t) ((float) cvDelta + (bend * osc->modDelta));
+	d*=pMod;
 	osc->phase = (osc->phase + d) & MASK_VALUE_FIXEDPOINT_4_16;
-	return osc->waveArray[osc->phase>>16];
+	return osc->waveArray[osc->phase >> 16];
+}
+
+FORCE_INLINE float Osc_proc_bend_fm_lfo(Oscill *osc, float offset,
+		float bend, float pMod, LFO* lfo) {
+	uint32_t cvDelta = osc->delta * offset;
+
+	const LFO_DESTINATION lfo_dest = LFO_getDest(lfo);
+
+	switch (lfo_dest) {
+		case Dest_OSCPitch: {
+			float exp = Table_Exponential_ex2[(int) (pMod * 1024 + 1024)];
+			uint32_t d = (uint32_t) (((float) cvDelta + (bend * osc->modDelta))
+					* exp * LFO_proc_exp(lfo));
+			osc->phase = (osc->phase + d) & MASK_VALUE_FIXEDPOINT_4_16;
+			return osc->waveArray[osc->phase >> 16];
+		}
+		case Dest_ModDepth: {
+			float exp = Table_Exponential_ex2[(int) (((LFO_proc(lfo) + 63.9f)
+					/ 128.0f) * pMod * 1024 + 1024)];
+			uint32_t d = (uint32_t) (((float) cvDelta + (bend * osc->modDelta))
+					* exp);
+			osc->phase = (osc->phase + d) & MASK_VALUE_FIXEDPOINT_4_16;
+			return osc->waveArray[osc->phase >> 16];
+		}
+		default: {
+			float exp = Table_Exponential_ex2[(int) (pMod * 1024 + 1024)];
+			uint32_t d = (uint32_t) (((float) cvDelta + (bend * osc->modDelta))
+					* exp);
+			osc->phase = (osc->phase + d) & MASK_VALUE_FIXEDPOINT_4_16;
+			return osc->waveArray[osc->phase >> 16];
+		}
+	}
 }
 

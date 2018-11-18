@@ -23,13 +23,17 @@
 //#define NUM_ELEMENTS_LFO_WAVE 1024
 
 typedef enum {
+	Dest_Cutoff = 0, Dest_OSCPitch = 1, Dest_ModPitch = 2, Dest_ModDepth = 3
+} LFO_DESTINATION;
+
+typedef enum {
 	LFO_SIN = 0, LFO_TRI = 1
 } LFO_WAVEFORM;
 
 const char* LFO_DEST_NAMES[4];
 
 typedef struct {
-	uint8_t destination;
+	LFO_DESTINATION destination;
 	uint32_t phase;
 	float depth; //linear
 	LFO_WAVEFORM waveform;
@@ -45,13 +49,13 @@ void LFO_setDepth(LFO *obj, uint8_t value);
 
 void LFO_setWave(LFO *obj, LFO_WAVEFORM wave);
 
-void LFO_setDest(LFO *obj, uint8_t dest);
+void LFO_setDest(LFO *obj, LFO_DESTINATION dest);
 
 uint8_t LFO_getSpeed(LFO *obj);
 
 uint8_t LFO_getDepth(LFO *obj) ;
 
-uint8_t LFO_getDest(LFO *obj) ;
+LFO_DESTINATION LFO_getDest(LFO *obj) ;
 
 const char* LFO_getDest_Name(LFO *obj) ;
 

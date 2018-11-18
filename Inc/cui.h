@@ -68,14 +68,9 @@ typedef struct {
 extern uint8_t LcdMenuSelectedItemIndex;
 extern volatile uint8_t LcdMenuState;
 extern int ProgramMenuSelectedItemIndex;
-
 extern uint8_t is_pressed_key_SHIFT;
-
 extern MidiSyncConfig midiSyncConfig;
-
-
 extern char ChPtName[4];
-
 extern const char* PresetTones[16];
 
 void SelectMenu(int add);

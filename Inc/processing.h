@@ -19,9 +19,7 @@ extern DMA_HandleTypeDef hdma_spi3_tx;
 extern uint16_t circularbuffer[AUDIO_BLOCK_SIZE * 2 * 2];
 extern uint16_t adc_buff[ADC_SAMPLE_LENGTH];
 extern uint16_t adcResult1;
-extern void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s);
-extern void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s);
-extern void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* AdcHandle);
-extern void InitSynthesizer();
+
+void InitSynthesizer();
 
 #endif /* PROCESSING_H_ */
