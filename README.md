@@ -8,4 +8,7 @@
 
 ## Target MCU
  - STM32F407VGT6 https://www.stmcu.jp/stm32/stm32f4/stm32f407417/12239/
+ 
+## LICENSE
+ - [GNU GENERAL PUBLIC LICENSE](./LICENSE)
 
