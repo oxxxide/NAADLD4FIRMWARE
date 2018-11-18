@@ -26,7 +26,7 @@ uint16_t adcResult2;
 uint16_t adcResult3;
 uint16_t adcResult4;
 
-Oscill osc1;
+//Oscill osc1;
 
 Gen synth[NUM_OF_VOICES];
 
@@ -35,8 +35,8 @@ static FORCE_INLINE void audio_process();
 
 void InitSynthesizer() {
 	Noise_Init();
-	Osc_Init(&osc1);
-	Osc_set_pitch(&osc1, 60);
+	//Osc_Init(&osc1);
+	//Osc_set_pitch(&osc1, 60);
 	for (int i = 0; i < NUM_OF_VOICES; i++) {
 		Gen_init(&synth[i]);
 	}
@@ -67,7 +67,6 @@ static FORCE_INLINE void audio_process(void* dest) {
 	cv2 = cvToExponential(adcResult2 / 3102.0f);
 	cv3 = cvToExponential(adcResult3 / 3102.0f);
 	cv4 = cvToExponential(adcResult4 / 3102.0f);
-
 
 	float fvalue = 0;
 	float sumL = 0;

@@ -23,15 +23,15 @@ typedef struct __gpio__ {
 void ButtonConfigInit(void);
 GPIO_PinState readPin(int btn);
 
-extern void ON_PUSH_MENU(void);
-extern void ON_PUSH_EXIT(void);
-extern void ON_PUSH_ENTER(void);
-extern void ON_PUSH_PROGRAM(void);
-extern void ON_PUSH_SHIFT(void);
-extern void ON_RELEASE_SHIFT(void);
-extern void ON_PUSH_A(void);
-extern void ON_PUSH_B(void);
-extern void ON_PUSH_C(void);
-extern void ON_PUSH_D(void);
+void ON_PUSH_MENU(void);
+void ON_PUSH_EXIT(void);
+void ON_PUSH_ENTER(void);
+void ON_PUSH_PROGRAM(void);
+void ON_PUSH_SHIFT(void);
+void ON_RELEASE_SHIFT(void);
+void ON_PUSH_A(void);
+void ON_PUSH_B(void);
+void ON_PUSH_C(void);
+void ON_PUSH_D(void);
 
 #endif /* BUTTONCONFIG_H_ */

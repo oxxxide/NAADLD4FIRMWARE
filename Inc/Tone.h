@@ -69,6 +69,7 @@ typedef struct {
 
 extern Tone tones[16];
 
+HAL_StatusTypeDef TemporarySave(I2C_EEPROM* eeprom, Tone* data);
 HAL_StatusTypeDef SaveTone(I2C_EEPROM* eeprom, int programNumber, Tone* data);
 HAL_StatusTypeDef ReadTone(I2C_EEPROM* eeprom, int programNumber, Tone* data);
 

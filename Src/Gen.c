@@ -48,59 +48,85 @@ void Gen_init(Gen *gen) {
 
 	LFO_Init(&gen->lfo);
 
-	//gen->i_pan = 0;
-	//gen->cof_pan_l = 1.0f;
-	//gen->cof_pan_r = 1.0f;
 }
 
 float FORCE_INLINE Gen_process_fm(Gen *gen, float cv) {
 	float v_eg_amp = AHR_proc(&gen->eg_amp);
 	float bend = AHR_proc(&gen->eg_bend);
-	float lfov1 = LFO_proc(&gen->lfo);
-	float fmv = Osc_proc(&gen->modu);
-	fmv = fmv * AHR_proc(&gen->eg_mod) * gen->mod_depth;
-	float v_osc_carr = Osc_proc_bend_fm_lfo(&gen->carr, cv, bend, fmv, lfov1);
-	float v_noise = Noise_Generate() * AHR_proc(&gen->eg_noise) * gen->noise_level;
-	float ret = (v_osc_carr * v_eg_amp * gen->carr_level) + (v_noise);
-	float dk = Decay_proc(&gen->decay_filter);
-	//Filter
-	switch (gen->filter.filter_type) {
-	case BYPASS:
-		break;
-	default:
-		//ret = Filter_process_no_envelope(&gen->filter, ret);
-		ret = Filter_process_no_envelope_w_lfo(&gen->filter, ret, (int32_t) (dk*gen->decay_filter.i_amount + lfov1) );
-		break;
+	float fmv=0;
+	int cutoff_mod = 0;
+	const LFO_DESTINATION lfo_dest = LFO_getDest(&gen->lfo);
+	switch (lfo_dest) {
+		case Dest_ModPitch:
+			fmv = Osc_proc_lfo(&gen->modu,&gen->lfo);
+			break;
+		case Dest_Cutoff:
+			cutoff_mod = LFO_proc(&gen->lfo);
+			fmv = Osc_proc(&gen->modu);
+			break;
+		default :
+			fmv = Osc_proc(&gen->modu);
+			break;
 	}
-	return ret;
+	fmv = fmv * AHR_proc(&gen->eg_mod) * gen->mod_depth;
+	float v_osc_carr = Osc_proc_bend_fm_lfo(&gen->carr, cv, bend, fmv, &gen->lfo);
+	float v_noise = Noise_Generate() * AHR_proc(&gen->eg_noise)
+			* gen->noise_level;
+	float ret = (v_osc_carr * v_eg_amp * gen->carr_level) + (v_noise);
+
+	switch (gen->filter.filter_type) {
+		case BYPASS:
+			return ret;
+		default:
+			return Filter_process_no_envelope_w_lfo(&gen->filter, ret,
+					(int32_t) (Decay_proc(&gen->decay_filter) * gen->decay_filter.i_amount + cutoff_mod));
+	}
 }
 
 float FORCE_INLINE Gen_process_ringmod(Gen *gen, float cv) {
 	float v_eg_amp = AHR_proc(&gen->eg_amp);
 	float bend = AHR_proc(&gen->eg_bend);
-	float lfov1 = LFO_proc(&gen->lfo);
-	float amv = Osc_proc(&gen->modu);
+	float amv = 0;
+	float v_osc_carr = 0;
+	int cutoff_mod = 0;
+	const LFO_DESTINATION lfo_dest = LFO_getDest(&gen->lfo);
+	switch(lfo_dest){
+		case Dest_ModPitch:
+			amv = Osc_proc_lfo(&gen->modu,&gen->lfo);
+			v_osc_carr = Osc_proc_bend(&gen->carr, cv, bend, 1.0f);
+			break;
+		case Dest_Cutoff:
+			cutoff_mod = LFO_proc(&gen->lfo);
+			amv = Osc_proc(&gen->modu);
+			v_osc_carr = Osc_proc_bend(&gen->carr, cv, bend, 1.0f);
+			break;
+		case Dest_ModDepth:
+			amv = Osc_proc(&gen->modu);
+			amv = ( (LFO_proc(&gen->lfo)+63.9f)/128.0f)*amv;
+			v_osc_carr = Osc_proc_bend(&gen->carr, cv, bend, 1.0f);
+			break;
+		case Dest_OSCPitch :
+		default:
+			amv = Osc_proc(&gen->modu);
+			v_osc_carr = Osc_proc_bend(&gen->carr, cv, bend, LFO_proc_exp(&gen->lfo));
+			break;
+	}
+
 	amv = amv * AHR_proc(&gen->eg_mod) * gen->mod_depth;
-	float v_osc_carr = Osc_proc_bend_fm_lfo(&gen->carr, cv, bend, 0, lfov1);
-
 	v_osc_carr = (v_osc_carr * (1+amv)) * gen->cf_ringmod_dev;
-
 	float v_noise = Noise_Generate() * AHR_proc(&gen->eg_noise) * gen->noise_level;
 	float ret = (v_osc_carr * v_eg_amp * gen->carr_level) + (v_noise);
 	float dk = Decay_proc(&gen->decay_filter);
-	//Filter
+
 	switch (gen->filter.filter_type) {
 	case BYPASS:
 		break;
 	default:
-		//ret = Filter_process_no_envelope(&gen->filter, ret);
-		ret = Filter_process_no_envelope_w_lfo(&gen->filter, ret, (int32_t) (dk*gen->decay_filter.i_amount + lfov1) );
+		ret = Filter_process_no_envelope_w_lfo(&gen->filter, ret, (int32_t) (dk*gen->decay_filter.i_amount + cutoff_mod));
 		break;
 	}
 	return ret;
 }
-
-//wave
 
 void Gen_set_carr_wave(Gen *gen, Waveform wf) {
 	Osc_set_waveform(&gen->carr,wf);
@@ -451,11 +477,8 @@ void Gen_set_lfo_depth(Gen* gen, uint8_t v) {
 	LFO_setDepth(&gen->lfo, v);
 }
 
-void Gen_set_lfo_dest(Gen* gen, uint8_t v) {
-
-	v = LIMIT(v,127,0);
-
-	LFO_setDest(&gen->lfo, v);
+void Gen_set_lfo_dest(Gen* gen, int8_t dest) {
+	LFO_setDest(&(gen->lfo), dest);
 }
 
 void Gen_set_pan(Gen* gen, int v) {

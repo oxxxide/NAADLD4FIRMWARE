@@ -16,23 +16,27 @@
 #define LCD_STATE_SEQ 2
 //#define LCD_STATE_MIDI 3
 #define LCD_STATE_SYNC 4
-#define LCD_STATE_TRIG 5
+#define LCD_STATE_VELC 5
 #define LCD_STATE_LOAD_PROGRAM 6
 #define LCD_STATE_SAVE_PROGRAM 7
 #define LCD_STATE_MONITOR_CV 8
 #define LCD_STATE_FACTORY_RESET_CONFIRM 9
-
 #define LCD_STATE_MIDI_RECEIVE_CONFIG 10
+#define LCD_STATE_PROGRAM_MENU 11
 
 #define ITEM_INDEX_SEQ 0
 #define ITEM_INDEX_SYNC 1
 #define ITEM_INDEX_MIDI 2
-#define ITEM_INDEX_TRIG 3
+#define ITEM_INDEX_VELC 3
 #define ITEM_INDEX_MONITOR_CV 4
 #define ITEM_INDEX_FACTORY_RESET 5
 
+#define ITEM_INDEX_TEMPSAVE 0
+#define ITEM_INDEX_STORE 1
+#define ITEM_INDEX_LOAD 2
+
 #define MENU_TEXTS_1 " SEQ    SYNC    "
-#define MENU_TEXTS_2 " MIDI   TRIG    "
+#define MENU_TEXTS_2 " MIDI   VELC    "
 #define MENU_TEXTS_3 " MONITOR CV-IN  "
 #define MENU_TEXTS_4 " RESTORE FS     "
 
@@ -62,16 +66,11 @@ typedef struct {
 } MidiSyncConfig;
 
 extern uint8_t LcdMenuSelectedItemIndex;
-extern uint8_t LcdMenuState;
-
-
+extern volatile uint8_t LcdMenuState;
+extern int ProgramMenuSelectedItemIndex;
 extern uint8_t is_pressed_key_SHIFT;
-
 extern MidiSyncConfig midiSyncConfig;
-
-
 extern char ChPtName[4];
-
 extern const char* PresetTones[16];
 
 void SelectMenu(int add);
@@ -81,13 +80,14 @@ void MIDIConfig_Show(MidiConfig* midiConfig);
 void MIDIConfig_ChangeNt(MidiConfig* midiConfig, int add);
 void MIDIConfig_ChangeCh(MidiConfig* midiConfig, int add);
 void MIDIConfig_DisplayChannel(MidiConfig* midiConfig ,int add);
+void MIDIConfig_velocity_curve(MidiConfig* midiConfig, int add);
 
 void SyncConfig_Show(void);
 void SyncConfig_ChangeSync(void);
 
 void TriggerConfig_Show(void);
 void TriggerConfig_Change(int add);
-
+void ShowProgramMenu(int add);
 void CV_Monitor_Show(void);
 void ConfirmFactoryReset(void);
 

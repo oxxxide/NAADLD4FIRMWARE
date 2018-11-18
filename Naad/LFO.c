@@ -8,8 +8,8 @@
 
 #include "LFO.h"
 
-const char* LFO_DEST_NAMES[4] =
-		{ "Cutoff","OSC-Amp", "OSC-Pitch","Mod-Pitch" };
+const char* LFO_DEST_NAMES[4] = { "Cutoff", "OSC-Pitch", "Mod-Pitch",
+		"Mod-Depth" };
 
 void LFO_setSpeed(LFO *obj, uint8_t speed) {
 	obj->speed = speed;
@@ -37,8 +37,8 @@ void LFO_setWave(LFO *obj, LFO_WAVEFORM wave) {
 	}
 }
 
-void LFO_setDest(LFO *obj, uint8_t dest) {
-	obj->destination = dest;
+void LFO_setDest(LFO *obj, LFO_DESTINATION dest) {
+	obj->destination = (LFO_DESTINATION) LIMIT(dest, 3, 0);
 }
 
 uint8_t LFO_getSpeed(LFO *obj) {
@@ -49,7 +49,7 @@ uint8_t LFO_getDepth(LFO *obj) {
 	return obj->i_depth;
 }
 
-uint8_t LFO_getDest(LFO *obj) {
+FORCE_INLINE LFO_DESTINATION LFO_getDest(LFO *obj) {
 	return obj->destination;
 }
 

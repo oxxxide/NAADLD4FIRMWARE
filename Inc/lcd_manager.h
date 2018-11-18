@@ -29,7 +29,7 @@
 
 //LCD Status
 extern uint8_t LcdMenuSelectedItemIndex;
-extern uint8_t LcdMenuState;
+extern volatile uint8_t LcdMenuState;
 extern uint8_t SelectedPartNo;
 extern uint8_t triggerThreshold;
 

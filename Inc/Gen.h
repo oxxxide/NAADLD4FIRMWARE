@@ -226,7 +226,7 @@ void Gen_set_lfo_speed(Gen* gen, uint8_t v);
 
 void Gen_set_lfo_depth(Gen* gen, uint8_t v);
 
-void Gen_set_lfo_dest(Gen* gen, uint8_t v);
+void Gen_set_lfo_dest(Gen* gen, int8_t v);
 
 void Gen_set_pan(Gen* gen, int v);
 

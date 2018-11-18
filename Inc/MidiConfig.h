@@ -115,9 +115,7 @@ typedef enum {
 } SyncMode;
 
 typedef enum {
-	Exponential,
-	Linear,
-	Fixed
+	Exponential = 0, Linear = 1, Fixed = 2
 } VelocityCurve;
 
 typedef struct {
