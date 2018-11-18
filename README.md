@@ -1,5 +1,5 @@
 # NAADLD4FIRMWARE
- An Official Firmware of "LD4" by NAAD http://naad.tokyo/
+ An Official Firmware for "LD4" by NAAD http://naad.tokyo/
 
 ## Development Environment
  - Atolic TRUESTUDIO https://www.st.com/ja/development-tools/truestudio.html
