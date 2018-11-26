@@ -11,6 +11,8 @@
 #include "stm32f4xx.h"
 #include "MidiConfig.h"
 
+
+
 #define LCD_STATE_DEFAULT 0
 #define LCD_STATE_MENU 1
 #define LCD_STATE_SEQ 2
@@ -23,7 +25,24 @@
 #define LCD_STATE_FACTORY_RESET_CONFIRM 9
 #define LCD_STATE_MIDI_RECEIVE_CONFIG 10
 #define LCD_STATE_PROGRAM_MENU 11
+#define LCD_STATE_ECHOBACK 12
 
+
+typedef enum {
+	ITEM_INDEX_SEQUENCER = 0,
+	ITEM_INDEX_SYNC = 1,
+	ITEM_INDEX_MIDI_ASIGN = 2,
+	ITEM_INDEX_VELOCITY_CURVE = 3,
+	ITEM_INDEX_MONITOR_CV = 4,
+	ITEM_INDEX_ECHO_BACK = 5,
+	ITEM_INDEX_FACTORY_RESET = 6
+} MENU_ITEM;
+
+typedef enum {
+	ITEM_INDEX_TEMPSAVE = 0, ITEM_INDEX_STORE = 1, ITEM_INDEX_LOAD = 2
+} PROGRAM_MENU_ITEM;
+
+/*
 #define ITEM_INDEX_SEQ 0
 #define ITEM_INDEX_SYNC 1
 #define ITEM_INDEX_MIDI 2
@@ -34,7 +53,7 @@
 #define ITEM_INDEX_TEMPSAVE 0
 #define ITEM_INDEX_STORE 1
 #define ITEM_INDEX_LOAD 2
-
+*/
 #define MENU_TEXTS_1 " SEQ    SYNC    "
 #define MENU_TEXTS_2 " MIDI   VELC    "
 #define MENU_TEXTS_3 " MONITOR CV-IN  "
@@ -81,6 +100,7 @@ void MIDIConfig_ChangeNt(MidiConfig* midiConfig, int add);
 void MIDIConfig_ChangeCh(MidiConfig* midiConfig, int add);
 void MIDIConfig_DisplayChannel(MidiConfig* midiConfig ,int add);
 void MIDIConfig_velocity_curve(MidiConfig* midiConfig, int add);
+void MIDIConfig_EchoBack(MidiConfig* config);
 
 void SyncConfig_Show(void);
 void SyncConfig_ChangeSync(void);
@@ -89,6 +109,7 @@ void TriggerConfig_Show(void);
 void TriggerConfig_Change(int add);
 void ShowProgramMenu(int add);
 void CV_Monitor_Show(void);
+
 void ConfirmFactoryReset(void);
 
 #endif /* CUI_H_ */

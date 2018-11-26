@@ -9,11 +9,18 @@
 
 static void parseSignal(uint8_t b);
 
+
+uint32_t Calc96ClckCntFor100KHz(uint32_t bpm){
+	return 60 / bpm * 100000 / 96;
+}
+
 void MidiParser_PushByte(uint8_t byte) {
+	/*
 	if (byte == 0xFE) {
 		//Ignore Active Sensing
 		return;
 	}
+	*/
 	if (byte == 0xF8) {
 		//MIDI Timing Clock
 		return;
@@ -112,6 +119,11 @@ void parseSignal(uint8_t b) {
 		return;
 	}
 	}
+}
+
+void SEND_TIMING_CLOCK(UART_HandleTypeDef* huart) {
+	const static uint8_t CLOCK = 0xF8;
+	HAL_UART_Transmit(huart, (uint8_t*)&CLOCK, 1, 1000);
 }
 
 __attribute__((weak)) void ON_RECEIVE_NOTE_ON(uint8_t ch, uint8_t note,

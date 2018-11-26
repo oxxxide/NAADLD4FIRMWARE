@@ -45,8 +45,54 @@ HAL_StatusTypeDef ReadTone(I2C_EEPROM* eeprom, int programNumber, Tone* data) {
 }
 
 void InitTone(Tone* tone){
+
 	memset(tone, 0,sizeof(Tone));
+
+	tone->amp_env_a = 0;
+	tone->amp_env_h = 5;
+	tone->amp_env_r = 35;
+	tone->amp_env_s = 0;
 	tone->amp_level = 63;
+
+	tone->bend_amount = 0;
+	tone->bend_env_a = 0;
+	tone->bend_env_h = 0;
+	tone->bend_env_r = 30;
+	tone->bend_env_s = 0;
+	tone->bend_vel_sense = 0;
+
+	tone->filter_accent = 60;
+	tone->filter_cutoff = 127;
+	tone->filter_decay = 30;
+	tone->filter_resonance = 0;
+	tone->filter_type = 1;
+
+	tone->lfo_depth = 0;
+	tone->lfo_destination = 0;
+	tone->lfo_speed = 30;
+	tone->lfo_depth = 64;
+	tone->lfo_wave = 0;
+
+	tone->mod_env_a = 0;
+	tone->mod_env_h = 10;
+	tone->mod_env_r = 55;
+	tone->mod_env_s = 0;
+	tone->mod_frequency = 12;
+	tone->mod_type = 0;
+
+	tone->noise_env_a = 0;
+	tone->noise_env_h = 0;
+	tone->noise_env_r = 20;
+	tone->noise_env_s = 0;
+	tone->noise_level = 0;
+
+	tone->osc_coarse = 60;
+	tone->osc_fine = 0;
+	tone->osc_mod_depth = 0;
+	tone->osc_wave = 0;
+
+	tone->panpot = 0;
+
 }
 
 void ToneCopyFromGen(Tone* dest, Gen* src) {

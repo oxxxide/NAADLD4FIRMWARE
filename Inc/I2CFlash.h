@@ -41,4 +41,6 @@ HAL_StatusTypeDef I2CFlash_SaveMidiConfig(I2C_EEPROM* instance,
 
 HAL_StatusTypeDef I2CFlash_FactoryReset(I2C_EEPROM* instance);
 
+HAL_StatusTypeDef waitUntilReady(I2C_EEPROM* instance);
+
 #endif /* I2CFLASH_H_ */

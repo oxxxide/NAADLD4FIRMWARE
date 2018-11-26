@@ -53,13 +53,46 @@ void SelectMenu(int add) {
 	}
 
 	if (tmp < 0) {
-		tmp = 5;
-	} else if (tmp > 5) {
+		tmp = 6;
+	} else if (tmp > 6) {
 		tmp = 0;
 	}
 
 	LcdMenuSelectedItemIndex = tmp;
 
+	switch (LcdMenuSelectedItemIndex) {
+	case ITEM_INDEX_SEQUENCER:
+		lcdWriteText(0,"~Sequencer       ",16);
+		lcdWriteText(1," Sync            ",16);
+		break;
+	case ITEM_INDEX_SYNC:
+		lcdWriteText(0," Sequencer       ",16);
+		lcdWriteText(1,"~Sync            ",16);
+		break;
+	case ITEM_INDEX_MIDI_ASIGN:
+		lcdWriteText(0,"~MIDI Asign      ",16);
+		lcdWriteText(1," Velocity Curve  ",16);
+		break;
+	case ITEM_INDEX_VELOCITY_CURVE:
+		lcdWriteText(0," MIDI Asign      ",16);
+		lcdWriteText(1,"~Velocity Curve  ",16);
+		break;
+	case ITEM_INDEX_MONITOR_CV:
+		lcdWriteText(0,"~CV Monitor     ",16);
+		lcdWriteText(1," EchoBack       ",16);
+		break;
+	case ITEM_INDEX_ECHO_BACK:
+		lcdWriteText(0," CV Monitor     ",16);
+		lcdWriteText(1,"~EchoBack       ",16);
+		break;
+	case ITEM_INDEX_FACTORY_RESET:
+		lcdWriteText(0,"~Factory Reset  ",16);
+		lcdWriteText(1,"                ",16);
+		break;
+	}
+
+
+	/*
 	switch (LcdMenuSelectedItemIndex) {
 	case 0:
 		lcdWriteText(0,"~SEQ    SYNC    ",16);
@@ -85,7 +118,7 @@ void SelectMenu(int add) {
 		lcdWriteText(0," CV Monitor     ",16);
 		lcdWriteText(1,"~Factory Reset  ",16);
 		break;
-	}
+	}*/
 }
 
 void MIDIConfig_Show(MidiConfig* midiConfig) {
@@ -258,6 +291,15 @@ void apply(Gen* s, uint8_t pSetNo) {
 void ConfirmFactoryReset() {
 	lcdWriteText(0, "Do FactoryReset?", 16);
 	lcdWriteText(1, "N:EXIT  Y:ENTER ", 16);
+}
+
+void MIDIConfig_EchoBack(MidiConfig* config){
+	lcdWriteText(0, "Echo Back       ", 16);
+	if(config->echoBack){
+		lcdWriteText(1, "ON              ", 16);
+	}else{
+		lcdWriteText(1, "OFF             ", 16);
+	}
 }
 
 void CV_Monitor_Show(){

@@ -39,6 +39,7 @@
 /* USER CODE BEGIN 0 */
 #include "r_encoder.h"
 #include "buttonconfig.h"
+#include "MIDIParser.h"
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
@@ -50,6 +51,8 @@ extern DMA_HandleTypeDef hdma_spi3_tx;
 extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim6;
 extern TIM_HandleTypeDef htim7;
+extern TIM_HandleTypeDef htim11;
+extern TIM_HandleTypeDef htim13;
 extern UART_HandleTypeDef huart1;
 
 extern TIM_HandleTypeDef htim10;
@@ -276,6 +279,23 @@ void TIM1_UP_TIM10_IRQHandler(void)
 }
 
 /**
+* @brief This function handles TIM1 trigger and commutation interrupts and TIM11 global interrupt.
+*/
+void TIM1_TRG_COM_TIM11_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM1_TRG_COM_TIM11_IRQn 0 */
+
+	static const uint8_t ActiveSensing = 0xFE;
+	HAL_UART_Transmit_IT(&huart1,(uint8_t*)&ActiveSensing,1);
+
+  /* USER CODE END TIM1_TRG_COM_TIM11_IRQn 0 */
+  HAL_TIM_IRQHandler(&htim11);
+  /* USER CODE BEGIN TIM1_TRG_COM_TIM11_IRQn 1 */
+
+  /* USER CODE END TIM1_TRG_COM_TIM11_IRQn 1 */
+}
+
+/**
 * @brief This function handles TIM2 global interrupt.
 */
 void TIM2_IRQHandler(void)
@@ -301,6 +321,29 @@ void USART1_IRQHandler(void)
   /* USER CODE BEGIN USART1_IRQn 1 */
 
   /* USER CODE END USART1_IRQn 1 */
+}
+
+/**
+* @brief This function handles TIM8 update interrupt and TIM13 global interrupt.
+*/
+void TIM8_UP_TIM13_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM8_UP_TIM13_IRQn 0 */
+
+	uint32_t cnt = Calc96ClckCntFor100KHz(120);
+
+	if(cnt){
+		cnt--;
+	}else{
+		cnt = Calc96ClckCntFor100KHz(120);
+		//progress tick()
+	}
+
+  /* USER CODE END TIM8_UP_TIM13_IRQn 0 */
+  HAL_TIM_IRQHandler(&htim13);
+  /* USER CODE BEGIN TIM8_UP_TIM13_IRQn 1 */
+
+  /* USER CODE END TIM8_UP_TIM13_IRQn 1 */
 }
 
 /**
