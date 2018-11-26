@@ -1783,11 +1783,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 		}else{
 			//RECEIVE MIDI
 			MidiParser_PushByte(tmp_byte);
-			//Echoback
-			if (midiConfig.echoBack) {
-				tmp_tx_byte = tmp_byte;
-				HAL_UART_Transmit_IT(huart,(uint8_t*) &tmp_tx_byte,1);
-			}
 		}
 	}
 	HAL_UART_Receive_IT(&huart1, (uint8_t*) &tmp_byte, 1);
@@ -2170,6 +2165,13 @@ void ON_RECEIVE_PROGRAM_CHANGE(uint8_t ch, uint8_t program) {
 		if (ReadTone(&eeprom, program, &t) == HAL_OK)
 			;
 		ToneCopyToGen(&synth[3], &t);
+	}
+}
+
+void MIDI_RAW_MESSAGE_CALLBACK(uint8_t *bytes, uint16_t size) {
+	//Echoback
+	if (midiConfig.echoBack) {
+		HAL_UART_Transmit_IT(&huart1, bytes, size);
 	}
 }
 

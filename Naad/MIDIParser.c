@@ -15,12 +15,6 @@ uint32_t Calc96ClckCntFor100KHz(uint32_t bpm){
 }
 
 void MidiParser_PushByte(uint8_t byte) {
-	/*
-	if (byte == 0xFE) {
-		//Ignore Active Sensing
-		return;
-	}
-	*/
 	if (byte == 0xF8) {
 		//MIDI Timing Clock
 		return;
@@ -34,6 +28,7 @@ void parseSignal(uint8_t b) {
 	static uint8_t firstByte = 0;
 	static uint8_t secondByte = 0;
 	static unsigned int counter = 0;
+	static uint8_t rawBytes[3];
 
 	if (status & 0b1000) {
 		//Status Byte
@@ -79,6 +74,11 @@ void parseSignal(uint8_t b) {
 			break;
 		}
 	}
+		if (counter == 0) {
+			rawBytes[0] = firstByte;
+			rawBytes[1] = b;
+			MIDI_RAW_MESSAGE_CALLBACK(rawBytes, 2);
+		}
 	return;
 	case 2:{
 		const uint8_t channel = firstByte & 0xF;
@@ -116,6 +116,10 @@ void parseSignal(uint8_t b) {
 			//PitchWheelChange
 			break;
 		}
+		rawBytes[0] = firstByte;
+		rawBytes[1] = secondByte;
+		rawBytes[2] = b;
+		MIDI_RAW_MESSAGE_CALLBACK(rawBytes, 3);
 		return;
 	}
 	}
@@ -145,4 +149,8 @@ __attribute__((weak)) void ON_RECEIVE_START() {
 __attribute__((weak)) void ON_RECEIVE_CONTINUE() {
 }
 __attribute__((weak)) void ON_RECEIVE_STOP() {
+}
+
+__attribute__((weak)) void MIDI_RAW_MESSAGE_CALLBACK(uint8_t *bytes,
+		uint16_t size) {
 }

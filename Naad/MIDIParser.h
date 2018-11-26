@@ -21,6 +21,7 @@ void ON_RECEIVE_CLOCK();
 void ON_RECEIVE_START();
 void ON_RECEIVE_CONTINUE();
 void ON_RECEIVE_STOP();
+void MIDI_RAW_MESSAGE_CALLBACK(uint8_t *bytes,uint16_t size);
 
 void SEND_TIMING_CLOCK(UART_HandleTypeDef* huart);
 
