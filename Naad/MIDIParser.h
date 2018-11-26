@@ -11,6 +11,7 @@
 #include "stm32f4xx_hal.h"
 
 void MidiParser_PushByte(uint8_t byte);
+uint32_t Calc96ClckCntFor100KHz(uint32_t bpm);
 
 void ON_RECEIVE_NOTE_ON(uint8_t ch,uint8_t note,uint8_t velocity);
 void ON_RECEIVE_NOTE_OFF(uint8_t ch,uint8_t note,uint8_t velocity);
@@ -20,5 +21,8 @@ void ON_RECEIVE_CLOCK();
 void ON_RECEIVE_START();
 void ON_RECEIVE_CONTINUE();
 void ON_RECEIVE_STOP();
+void MIDI_RAW_MESSAGE_CALLBACK(uint8_t *bytes,uint16_t size);
+
+void SEND_TIMING_CLOCK(UART_HandleTypeDef* huart);
 
 #endif /* MIDIPARSER_H_ */

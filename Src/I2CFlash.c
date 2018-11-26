@@ -6,10 +6,9 @@
  */
 
 #include "I2CFlash.h"
+#include "Tone.h"
 
 #define TIMEOUT_MSEC_EEPROM 2000
-
-static HAL_StatusTypeDef waitUntilReady(I2C_EEPROM* instance);
 
 void I2CFlash_Init(I2C_EEPROM* instance, I2C_HandleTypeDef *hi2c) {
 	instance->pI2C = hi2c;
@@ -55,10 +54,24 @@ HAL_StatusTypeDef I2CFlash_FactoryReset(I2C_EEPROM* instance) {
 		return ret;
 	}
 	ret = waitUntilReady(instance);
+
+	Tone t;
+	InitTone(&t);
+	for (int i = 0; i < 127; i++) {
+		ret = I2CFlash_Write(instance, ROM_ADDRESS_TONE_USER + i * 64,
+				(uint8_t*) &t, sizeof(Tone));
+		if (ret != HAL_OK) {
+			return ret;
+		}
+		ret = waitUntilReady(instance);
+		if (ret != HAL_OK) {
+					return ret;
+				}
+	}
 	return ret;
 }
 
-static HAL_StatusTypeDef waitUntilReady(I2C_EEPROM* instance) {
+HAL_StatusTypeDef waitUntilReady(I2C_EEPROM* instance) {
 	HAL_I2C_StateTypeDef state = HAL_I2C_STATE_RESET;
 	int cnt = 0;
 	do {

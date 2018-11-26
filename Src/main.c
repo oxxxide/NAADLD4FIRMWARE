@@ -80,6 +80,8 @@ DMA_HandleTypeDef hdma_spi3_tx;
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim6;
 TIM_HandleTypeDef htim7;
+TIM_HandleTypeDef htim11;
+TIM_HandleTypeDef htim13;
 
 UART_HandleTypeDef huart1;
 
@@ -94,11 +96,12 @@ int SelectedChannel = 0;
 int selected_row = 0;
 int selected_col = 1;
 static int pNo = 0;
-static uint8_t tartgetProgramNo = 0;
+static volatile uint8_t tartgetProgramNo = 0;
 static I2C_EEPROM eeprom;
 static MidiConfig midiConfig;
 volatile float cv1 = 0, cv2 = 0, cv3 = 0, cv4 = 0;
 volatile uint8_t tmp_byte = 0;
+volatile uint8_t tmp_tx_byte = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -114,6 +117,8 @@ static void MX_I2C2_Init(void);
 static void MX_TIM7_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_USART1_UART_Init(void);
+static void MX_TIM11_Init(void);
+static void MX_TIM13_Init(void);
 void StartDefaultTask(void const * argument);
 static void MX_NVIC_Init(void);
 
@@ -171,6 +176,8 @@ int main(void)
   MX_TIM7_Init();
   MX_TIM2_Init();
   MX_USART1_UART_Init();
+  MX_TIM11_Init();
+  MX_TIM13_Init();
 
   /* Initialize interrupts */
   MX_NVIC_Init();
@@ -192,19 +199,21 @@ int main(void)
 
 	InitLcdManager();
 
+	waitUntilReady(&eeprom);
 	/*Read System Settngs*/
 	if (READ_SYSTEMCONFIG_FROM_FLASH) {
 		I2CFlash_Read(&eeprom, ROM_ADDRESS_MIDICONFIG, (uint8_t*)&midiConfig,
 				sizeof(MidiConfig));
+		waitUntilReady(&eeprom);
 	}
 
 	/*Read Temporary Data*/
-
 	for (int i = 0; i < 4; i++) {
 		Tone t;
 		size_t tone_size = sizeof(Tone);
 		I2CFlash_Read(&eeprom, ROM_ADDRESS_TONE_FACTORY + (i * 64),
 				(uint8_t*) &t, tone_size);
+		waitUntilReady(&eeprom);
 		ToneCopyToGen(&synth[i], &t);
 	}
 
@@ -217,6 +226,8 @@ int main(void)
 	HAL_I2S_Transmit_DMA(&hi2s3, circularbuffer, AUDIO_BLOCK_SIZE * 2 * 2);
 
 	HAL_UART_Receive_IT(&huart1, (uint8_t*) &tmp_byte, 1); //Start MIDI Driver
+
+	HAL_TIM_Base_Start_IT(&htim11);
 
   /* USER CODE END 2 */
 
@@ -570,6 +581,38 @@ static void MX_TIM7_Init(void)
   sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
   sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
   if (HAL_TIMEx_MasterConfigSynchronization(&htim7, &sMasterConfig) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+}
+
+/* TIM11 init function */
+static void MX_TIM11_Init(void)
+{
+
+  htim11.Instance = TIM11;
+  htim11.Init.Prescaler = 1680-1;
+  htim11.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim11.Init.Period = 29000-1;
+  htim11.Init.ClockDivision = TIM_CLOCKDIVISION_DIV4;
+  if (HAL_TIM_Base_Init(&htim11) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+}
+
+/* TIM13 init function */
+static void MX_TIM13_Init(void)
+{
+
+  htim13.Instance = TIM13;
+  htim13.Init.Prescaler = 168-1;
+  htim13.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim13.Init.Period = 10-1;
+  htim13.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  if (HAL_TIM_Base_Init(&htim13) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
@@ -1122,6 +1165,14 @@ void onChangeRE_E(int id, int add) {
 		return;
 	}
 
+	if (LcdMenuState == LCD_STATE_ECHOBACK) {
+		if (add) {
+			midiConfig.echoBack = add > 0 ? 1 : 0;
+		}
+		MIDIConfig_EchoBack(&midiConfig);
+		return;
+	}
+
 	if (LcdMenuState == LCD_STATE_MIDI_RECEIVE_CONFIG) {
 		MIDIConfig_DisplayChannel(&midiConfig, add >= 0 ? 1 : -1);
 		return;
@@ -1137,10 +1188,7 @@ void onChangeRE_E(int id, int add) {
 		return;
 	}
 
-	if (LcdMenuState == LCD_STATE_VELC) {
-		//TriggerConfig_Change(add);
-		return;
-	}
+
 
 	if (LcdMenuState == LCD_STATE_LOAD_PROGRAM) {
 		tartgetProgramNo += add;
@@ -1216,7 +1264,7 @@ void ON_PUSH_EXIT(void) {
 		return;
 	}
 
-	if (LcdMenuState == LCD_STATE_MIDI_RECEIVE_CONFIG || LcdMenuState == LCD_STATE_VELC) {
+	if (LcdMenuState == LCD_STATE_MIDI_RECEIVE_CONFIG || LcdMenuState == LCD_STATE_VELC || LcdMenuState == LCD_STATE_ECHOBACK) {
 		LcdMenuState = LCD_STATE_MENU;
 		HAL_StatusTypeDef ret = I2CFlash_SaveMidiConfig(&eeprom, &midiConfig);
 		if (ret != HAL_OK) {
@@ -1247,16 +1295,16 @@ void ON_PUSH_EXIT(void) {
 
 	if (LcdMenuState == LCD_STATE_MENU) {
 		switch (LcdMenuSelectedItemIndex) {
-		case ITEM_INDEX_SEQ:
+		case ITEM_INDEX_SEQUENCER:
 			LcdMenuState = LCD_STATE_MENU;
 			break;
-		case ITEM_INDEX_MIDI:
+		case ITEM_INDEX_MIDI_ASIGN:
 			ON_PUSH_MENU();
 			break;
 		case ITEM_INDEX_SYNC:
 			LcdMenuState = LCD_STATE_MENU;
 			break;
-		case ITEM_INDEX_VELC:
+		case ITEM_INDEX_VELOCITY_CURVE:
 			LcdMenuState = LCD_STATE_MENU;
 			break;
 		}
@@ -1273,10 +1321,10 @@ void ON_PUSH_ENTER(void) {
 
 	if (LcdMenuState == LCD_STATE_MENU) {
 		switch (LcdMenuSelectedItemIndex) {
-		case ITEM_INDEX_SEQ:
+		case ITEM_INDEX_SEQUENCER:
 			LcdMenuState = LCD_STATE_SEQ;
 			break;
-		case ITEM_INDEX_MIDI:
+		case ITEM_INDEX_MIDI_ASIGN:
 			LcdMenuState = LCD_STATE_MIDI_RECEIVE_CONFIG;
 			MIDIConfig_Show(&midiConfig);
 			break;
@@ -1284,13 +1332,17 @@ void ON_PUSH_ENTER(void) {
 			LcdMenuState = LCD_STATE_SYNC;
 			SyncConfig_Show();
 			break;
-		case ITEM_INDEX_VELC:
+		case ITEM_INDEX_VELOCITY_CURVE:
 			LcdMenuState = LCD_STATE_VELC;
 			MIDIConfig_velocity_curve(&midiConfig, 0);
 			break;
 		case ITEM_INDEX_MONITOR_CV:
 			LcdMenuState = LCD_STATE_MONITOR_CV;
 			CV_Monitor_Show();
+			break;
+		case ITEM_INDEX_ECHO_BACK:
+			LcdMenuState = LCD_STATE_ECHOBACK;
+			MIDIConfig_EchoBack(&midiConfig);
 			break;
 		case ITEM_INDEX_FACTORY_RESET:
 			LcdMenuState = LCD_STATE_FACTORY_RESET_CONFIRM;
@@ -1726,8 +1778,12 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
  */
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 	if (huart->Instance == USART1) {
-		//RECEIVE MIDI
-		MidiParser_PushByte(tmp_byte);
+		if (tmp_byte == 0xFE) {
+			//Ignore Active Sensing
+		}else{
+			//RECEIVE MIDI
+			MidiParser_PushByte(tmp_byte);
+		}
 	}
 	HAL_UART_Receive_IT(&huart1, (uint8_t*) &tmp_byte, 1);
 }
@@ -2085,6 +2141,39 @@ void ON_RECEIVE_CONTROL_CHANGE(uint8_t ch, uint8_t no, uint8_t value) {
 }
 
 
+void ON_RECEIVE_PROGRAM_CHANGE(uint8_t ch, uint8_t program) {
+	if (program < 0 || program > 127) {
+		return;
+	}
+	Tone t;
+	if (midiConfig.channel_A == ch) {
+		if (ReadTone(&eeprom, program, &t) == HAL_OK)
+			;
+		ToneCopyToGen(&synth[0], &t);
+	}
+	if (midiConfig.channel_B == ch) {
+		if (ReadTone(&eeprom, program, &t) == HAL_OK)
+			;
+		ToneCopyToGen(&synth[1], &t);
+	}
+	if (midiConfig.channel_C == ch) {
+		if (ReadTone(&eeprom, program, &t) == HAL_OK)
+			;
+		ToneCopyToGen(&synth[2], &t);
+	}
+	if (midiConfig.channel_D == ch) {
+		if (ReadTone(&eeprom, program, &t) == HAL_OK)
+			;
+		ToneCopyToGen(&synth[3], &t);
+	}
+}
+
+void MIDI_RAW_MESSAGE_CALLBACK(uint8_t *bytes, uint16_t size) {
+	//Echoback
+	if (midiConfig.echoBack) {
+		HAL_UART_Transmit_IT(&huart1, bytes, size);
+	}
+}
 
 /* USER CODE END 4 */
 

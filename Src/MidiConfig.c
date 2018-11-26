@@ -22,6 +22,7 @@ void InitMidiConfig(MidiConfig *instance) {
 	instance->syncMode = InternalClock;
 	instance->outputSystemMessage = 1;
 	instance->velocityCurve = Exponential;
+	instance->echoBack = 0;
 
 }
 
