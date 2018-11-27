@@ -40,6 +40,7 @@
 #include "r_encoder.h"
 #include "buttonconfig.h"
 #include "MIDIParser.h"
+#include "cui.h"
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
@@ -284,10 +285,11 @@ void TIM1_UP_TIM10_IRQHandler(void)
 void TIM1_TRG_COM_TIM11_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM1_TRG_COM_TIM11_IRQn 0 */
-
 	static const uint8_t ActiveSensing = 0xFE;
 	HAL_UART_Transmit_IT(&huart1,(uint8_t*)&ActiveSensing,1);
-
+	if (LcdMenuState == LCD_STATE_MONITOR_CV) {
+		CV_Monitor_Show();
+	}
   /* USER CODE END TIM1_TRG_COM_TIM11_IRQn 0 */
   HAL_TIM_IRQHandler(&htim11);
   /* USER CODE BEGIN TIM1_TRG_COM_TIM11_IRQn 1 */

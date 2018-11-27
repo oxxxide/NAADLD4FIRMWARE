@@ -211,7 +211,7 @@ int main(void)
 	for (int i = 0; i < 4; i++) {
 		Tone t;
 		size_t tone_size = sizeof(Tone);
-		I2CFlash_Read(&eeprom, ROM_ADDRESS_TONE_FACTORY + (i * 64),
+		I2CFlash_Read(&eeprom, ROM_ADDRESS_TONE_TMP + (i * 64),
 				(uint8_t*) &t, tone_size);
 		waitUntilReady(&eeprom);
 		ToneCopyToGen(&synth[i], &t);
@@ -1362,25 +1362,25 @@ void ON_PUSH_ENTER(void) {
 			ToneCopyFromGen(&t4,&synth[3]);
 
 			HAL_StatusTypeDef ret = I2CFlash_Write(&eeprom,
-			ROM_ADDRESS_TONE_FACTORY, (uint8_t*) &t1, sizeof(Tone));
+			ROM_ADDRESS_TONE_TMP, (uint8_t*) &t1, sizeof(Tone));
 			uint16_t tone_size = sizeof(Tone);
 			if (ret != HAL_OK) {
 				lcdWriteText(0, "Error ", 16);
 				return;
 			}
-			ret = I2CFlash_Write(&eeprom, ROM_ADDRESS_TONE_FACTORY + 64,
+			ret = I2CFlash_Write(&eeprom, ROM_ADDRESS_TONE_TMP + 64,
 					(uint8_t*) &t2, tone_size);
 			if (ret != HAL_OK) {
 				lcdWriteText(0, "Error ", 16);
 				return;
 			}
-			ret = I2CFlash_Write(&eeprom, ROM_ADDRESS_TONE_FACTORY + 128,
+			ret = I2CFlash_Write(&eeprom, ROM_ADDRESS_TONE_TMP + 128,
 					(uint8_t*) &t3, tone_size);
 			if (ret != HAL_OK) {
 				lcdWriteText(0, "Error ", 16);
 				return;
 			}
-			ret = I2CFlash_Write(&eeprom, ROM_ADDRESS_TONE_FACTORY + 192,
+			ret = I2CFlash_Write(&eeprom, ROM_ADDRESS_TONE_TMP + 192,
 					(uint8_t*) &t4, tone_size);
 			if (ret != HAL_OK) {
 				lcdWriteText(0, "Error ", 16);

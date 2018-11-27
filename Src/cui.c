@@ -304,33 +304,43 @@ void MIDIConfig_EchoBack(MidiConfig* config){
 
 void CV_Monitor_Show(){
 
-	static const char* fmtstr1 = "A:%3.2f B:%3.2f   ";
-	static const char* fmtstr2 = "C:%3.2f D:%3.2f   ";
-
 	static char str1[17] = {'\0'};
 	static char str2[17] = {'\0'};
 
+	float iv1, iv2, iv3, iv4;
 
 
 	if (HAL_GPIO_ReadPin(GPIO_INPUT_ADCSW1_GPIO_Port, GPIO_INPUT_ADCSW1_Pin)
 			== GPIO_PIN_RESET) {
-		cv1 = 0;
-	}
-	if (HAL_GPIO_ReadPin(GPIO_INPUT_ADCSW2_GPIO_Port, GPIO_INPUT_ADCSW2_Pin)
-			== GPIO_PIN_RESET) {
-		cv2 = 0;
-	}
-	if (HAL_GPIO_ReadPin(GPIO_INPUT_ADCSW3_GPIO_Port, GPIO_INPUT_ADCSW3_Pin)
-			== GPIO_PIN_RESET) {
-		cv3 = 0;
-	}
-	if (HAL_GPIO_ReadPin(GPIO_INPUT_ADCSW4_GPIO_Port, GPIO_INPUT_ADCSW4_Pin)
-			== GPIO_PIN_RESET) {
-		cv4 = 0;
+		iv1 = 0;
+	} else {
+		iv1 = adcResult1 / 500.0f;
 	}
 
-	sprintf(str1,fmtstr1,cv1,cv2);
-	sprintf(str2,fmtstr2,cv3,cv4);
+	if (HAL_GPIO_ReadPin(GPIO_INPUT_ADCSW2_GPIO_Port, GPIO_INPUT_ADCSW2_Pin)
+			== GPIO_PIN_RESET) {
+		iv2 = 0;
+	} else {
+		iv2 = adcResult2 / 500.0f;
+	}
+
+	if (HAL_GPIO_ReadPin(GPIO_INPUT_ADCSW3_GPIO_Port, GPIO_INPUT_ADCSW3_Pin)
+			== GPIO_PIN_RESET) {
+		iv3 = 0;
+	} else {
+		iv3 = adcResult3 / 500.0f;
+	}
+
+	if (HAL_GPIO_ReadPin(GPIO_INPUT_ADCSW4_GPIO_Port, GPIO_INPUT_ADCSW4_Pin)
+			== GPIO_PIN_RESET) {
+		iv4 = 0;
+	} else {
+		iv4 = adcResult4 / 500.0f;
+	}
+
+
+	sprintf(str1, "A:%2.2fV B:%2.2fV ", iv1, iv2);
+	sprintf(str2, "C:%2.2fV D:%2.2fV ", iv3, iv4);
 
 	lcdWriteText(0, &str1[0], 16);
 	lcdWriteText(1, &str2[0], 16);

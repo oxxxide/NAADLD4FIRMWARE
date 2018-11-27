@@ -15,10 +15,12 @@ uint32_t Calc96ClckCntFor100KHz(uint32_t bpm){
 }
 
 void MidiParser_PushByte(uint8_t byte) {
+	/*
 	if (byte == 0xF8) {
 		//MIDI Timing Clock
 		return;
 	}
+	*/
 	parseSignal(byte);
 }
 
@@ -56,6 +58,10 @@ void parseSignal(uint8_t b) {
 	case 0: {
 		counter++;
 		firstByte = b;
+		if (status & 0b1000) {
+			rawBytes[0] = b;
+			MIDI_RAW_MESSAGE_CALLBACK(rawBytes, 1);
+		}
 		break;
 	}
 	return;

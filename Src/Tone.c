@@ -16,7 +16,7 @@ HAL_StatusTypeDef TemporarySave(I2C_EEPROM* eeprom, Tone* data) {
 	HAL_StatusTypeDef ret = HAL_ERROR;
 	for (int i = 0; i < 4; i++) {
 		ret = I2CFlash_Write(eeprom,
-				ROM_ADDRESS_TONE_FACTORY + (i * 64), (uint8_t*) &(data[i]), size);
+				ROM_ADDRESS_TONE_TMP + (i * 64), (uint8_t*) &(data[i]), size);
 		if (ret != HAL_OK) {
 			return ret;
 		}

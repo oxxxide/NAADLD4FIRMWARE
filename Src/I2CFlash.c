@@ -65,9 +65,23 @@ HAL_StatusTypeDef I2CFlash_FactoryReset(I2C_EEPROM* instance) {
 		}
 		ret = waitUntilReady(instance);
 		if (ret != HAL_OK) {
-					return ret;
-				}
+			return ret;
+		}
 	}
+
+	//clear temporary
+	for (int i = 0; i < 4; i++) {
+		ret = I2CFlash_Write(instance, ROM_ADDRESS_TONE_TMP + i * 64,
+				(uint8_t*) &t, sizeof(Tone));
+		if (ret != HAL_OK) {
+			return ret;
+		}
+		ret = waitUntilReady(instance);
+		if (ret != HAL_OK) {
+			return ret;
+		}
+	}
+
 	return ret;
 }
 

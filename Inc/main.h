@@ -54,7 +54,7 @@
 /* Includes ------------------------------------------------------------------*/
 
 /* USER CODE BEGIN Includes */
-
+#include "stm32f4xx.h"
 /* USER CODE END Includes */
 
 /* Private define ------------------------------------------------------------*/
@@ -167,11 +167,17 @@
 //System Info
 #define FIRMWARE_VERSION "1.00"
 
-//#define I2C_LCD_ADDRESS 0x27 /*PCF8574T*/
-#define I2C_LCD_ADDRESS 0x3F /*PCF8574A*/
+#define I2C_LCD_ADDRESS 0x27 /*PCF8574T*/
+//#define I2C_LCD_ADDRESS 0x3F /*PCF8574A*/
 
 #define LIMIT(v,max,min)( (v)>(max) ? (max) : ( (v)<(min) ? (min):(v) ) )
 
+extern volatile uint8_t LcdMenuState;
+
+extern uint16_t adcResult1;
+extern uint16_t adcResult2;
+extern uint16_t adcResult3;
+extern uint16_t adcResult4;
 volatile float cv1,cv2,cv3,cv4;
 
 void updateEncodersState(void);
