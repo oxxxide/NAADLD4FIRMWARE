@@ -61,16 +61,40 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s) {
 	}
 }
 
-static FORCE_INLINE void audio_process(void* dest) {
+static FORCE_INLINE void calcCvValue() {
+	if (HAL_GPIO_ReadPin(GPIO_INPUT_ADCSW1_GPIO_Port, GPIO_INPUT_ADCSW1_Pin)
+			== GPIO_PIN_RESET) {
+		cv1 = 1.0f;
+	} else {
+		cv1 = cvToExponential(adcResult1 / 2500.0f);
+	}
+	if (HAL_GPIO_ReadPin(GPIO_INPUT_ADCSW2_GPIO_Port, GPIO_INPUT_ADCSW2_Pin)
+			== GPIO_PIN_RESET) {
+		cv2 = 1.0f;
+	} else {
+		cv2 = cvToExponential(adcResult2 / 2500.0f);
+	}
+	if (HAL_GPIO_ReadPin(GPIO_INPUT_ADCSW3_GPIO_Port, GPIO_INPUT_ADCSW3_Pin)
+			== GPIO_PIN_RESET) {
+		cv3 = 1.0f;
+	} else {
+		cv3 = cvToExponential(adcResult3 / 2500.0f);
+	}
+	if (HAL_GPIO_ReadPin(GPIO_INPUT_ADCSW4_GPIO_Port, GPIO_INPUT_ADCSW4_Pin)
+			== GPIO_PIN_RESET) {
+		cv4 = 1.0f;
+	} else {
+		cv4 = cvToExponential(adcResult4 / 2500.0f);
+	}
+}
 
-	cv1 = cvToExponential(adcResult1 / 3102.0f);
-	cv2 = cvToExponential(adcResult2 / 3102.0f);
-	cv3 = cvToExponential(adcResult3 / 3102.0f);
-	cv4 = cvToExponential(adcResult4 / 3102.0f);
+static FORCE_INLINE void audio_process(void* dest) {
 
 	float fvalue = 0;
 	float sumL = 0;
 	float sumR = 0;
+
+	calcCvValue();
 
 	for (int i = 0; i < AUDIO_BLOCK_SIZE * 2;) {
 		sumL = 0;
@@ -111,9 +135,8 @@ static FORCE_INLINE void audio_process(void* dest) {
 		sumL = (sumL > 1.0f) ? 1.0f : (sumL < -1.0f) ? -1.0f : sumL;
 		sumR = (sumR > 1.0f) ? 1.0f : (sumR < -1.0f) ? -1.0f : sumR;
 
-		workingcache[i++] = (int16_t) (sumR * (SHRT_MAX - 1)); //R
 		workingcache[i++] = (int16_t) (sumL * (SHRT_MAX - 1)); //L
-
+		workingcache[i++] = (int16_t) (sumR * (SHRT_MAX - 1)); //R
 	}
 
 	memcpy(dest, workingcache, (sizeof(int16_t) * AUDIO_BLOCK_SIZE * 2));

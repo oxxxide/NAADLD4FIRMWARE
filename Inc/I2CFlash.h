@@ -10,6 +10,7 @@
 
 #include "stm32f4xx_hal.h"
 #include "MidiConfig.h"
+#include "Sequencer.h"
 
 typedef struct {
 	I2C_HandleTypeDef *pI2C;
@@ -24,9 +25,11 @@ typedef struct {
 
 #define ROM_ADDRESS_SEQUENCER 128
 
-#define ROM_ADDRESS_TONE_FACTORY 256
+#define ROM_ADDRESS_TONE_TMP 256
 
 #define ROM_ADDRESS_TONE_USER 896
+
+#define ROM_ADDRESS_SEQUENCE_DATA 9088
 
 void I2CFlash_Init(I2C_EEPROM* instance, I2C_HandleTypeDef *hi2c);
 
@@ -38,6 +41,12 @@ HAL_StatusTypeDef I2CFlash_Read(I2C_EEPROM* instance, uint16_t memAddress1,
 
 HAL_StatusTypeDef I2CFlash_SaveMidiConfig(I2C_EEPROM* instance,
 		MidiConfig* midiconfig);
+
+HAL_StatusTypeDef I2CFlash_SaveSequenceData(I2C_EEPROM* instance,
+		Sequencer* seq);
+
+HAL_StatusTypeDef I2CFlash_LoadSequenceData(I2C_EEPROM* instance,
+		Sequencer* seq);
 
 HAL_StatusTypeDef I2CFlash_FactoryReset(I2C_EEPROM* instance);
 

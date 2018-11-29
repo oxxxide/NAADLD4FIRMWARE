@@ -33,6 +33,8 @@ const char* PresetTones[16] = {
 };
 
 uint8_t LcdMenuSelectedItemIndex = 0;
+uint8_t seq_menu_item_index = 0;
+
 int ProgramMenuSelectedItemIndex = 0;
 
 volatile uint8_t LcdMenuState = LCD_STATE_DEFAULT;
@@ -40,7 +42,7 @@ uint8_t is_pressed_key_SHIFT = 0;
 
 
 
-MidiSyncConfig midiSyncConfig = {CLOCK_SOURCE_INTERNAL,CLOCK_OUT_DISABLE,120};
+//MidiSyncConfig midiSyncConfig = {CLOCK_SOURCE_INTERNAL,CLOCK_OUT_DISABLE,120};
 
 uint8_t triggerThreshold = 0;
 
@@ -188,6 +190,8 @@ void MIDIConfig_ChangeCh(MidiConfig* midiConfig, int add) {
 	MIDIConfig_Show(midiConfig);
 }
 
+
+
 void MIDIConfig_DisplayChannel(MidiConfig* midiConfig, int add) {
 	char ch = displayChannel + add;
 	if (ch < 'A') {
@@ -199,7 +203,7 @@ void MIDIConfig_DisplayChannel(MidiConfig* midiConfig, int add) {
 	MIDIConfig_Show(midiConfig);
 }
 
-void MIDIConfig_velocity_curve(MidiConfig* midiConfig, int add) {
+void MIDIConfig_VelocityCurve(MidiConfig* midiConfig, int add) {
 	LcdMenuState = LCD_STATE_VELC;
 	int v = midiConfig->velocityCurve + add;
 	midiConfig->velocityCurve = (VelocityCurve) LIMIT(v, Fixed, Exponential);
@@ -215,6 +219,53 @@ void MIDIConfig_velocity_curve(MidiConfig* midiConfig, int add) {
 		lcdWriteText(1, "~Fixed          ", 16);
 		break;
 	}
+}
+
+void ShowSequencerTop(Sequencer* seq, int add) {
+	LcdMenuState = LCD_STATE_SEQ_TOP;
+	if (add != 0) {
+		if (seq_menu_item_index) {
+			seq_menu_item_index = 0;
+		} else {
+			seq_menu_item_index = 1;
+		}
+	}
+	switch (seq_menu_item_index) {
+	case 0:
+		lcdWriteText(0, "~Start/Stop     ", 16);
+		lcdWriteText(1, " Edit           ", 16);
+		break;
+	case 1:
+		lcdWriteText(0, " Start/Stop     ", 16);
+		lcdWriteText(1, "~Edit           ", 16);
+		break;
+	}
+}
+
+void ShowSequencerEditMode(Sequencer* seq, int moveStep){
+	LcdMenuState = LCD_STATE_SEQ_EDIT;
+	char str[17] = { '\0' };
+	if (moveStep != 0) {
+		seq->cursor_index += (moveStep > 0 ? 1 : -1);
+		if (seq->cursor_index > 15) {
+			seq->cursor_index = 15;
+		} else if (seq->cursor_index <= 0) {
+			seq->cursor_index = 0;
+		}
+	}
+
+	//1st Line
+	sprintf(str, "STEP:%02d  BPM:%03d", seq->cursor_index + 1, seq->bpm);
+	lcdWriteText(0, str, 16);
+
+	//2nd Line
+	Notes *n = &(seq->sequenceData[seq->cursor_index]);
+	sprintf(str, "A:%c B:%c C:%c D:%c ",
+			n->a ? '*' : '-',
+			n->b ? '*' : '-',
+			n->c ? '*' : '-',
+			n->d ? '*' : '-');
+	lcdWriteText(1, str, 16);
 }
 
 void ShowProgramMenu(int add) {
@@ -245,30 +296,18 @@ void ShowProgramMenu(int add) {
 
 }
 
-void SyncConfig_Show(){
-
-	char* value = NULL;
-	switch(midiSyncConfig.clockSource){
-	case CLOCK_SOURCE_INTERNAL:
-		value = MENU_SYNC_TEXT_Internal;
+void MIDIConfig_SyncMode(MidiConfig* config){
+	lcdWriteText(0,"Sync Mode       ",16);
+	switch(config->syncMode){
+	case InternalClock:
+		lcdWriteText(1,"~Internal       ",16);
 		break;
-	case CLOCK_SOURCE_EXTERNAL:
-		value = MENU_SYNC_TEXT_External;
+	case ExternalClock:
+		lcdWriteText(1,"~External       ",16);
 		break;
 	}
-
-	lcdWriteText(0,MENU_SYNC_TEXT_1,16);
-	lcdWriteText(1,value,16);
 }
 
-void SyncConfig_ChangeSync(){
-	if(midiSyncConfig.clockSource == CLOCK_SOURCE_INTERNAL){
-		midiSyncConfig.clockSource = CLOCK_SOURCE_EXTERNAL;
-	}else{
-		midiSyncConfig.clockSource = CLOCK_SOURCE_INTERNAL;
-	}
-	SyncConfig_Show();
-}
 
 void TriggerConfig_Show() {
 	char p[16];
@@ -296,41 +335,51 @@ void ConfirmFactoryReset() {
 void MIDIConfig_EchoBack(MidiConfig* config){
 	lcdWriteText(0, "Echo Back       ", 16);
 	if(config->echoBack){
-		lcdWriteText(1, "ON              ", 16);
+		lcdWriteText(1, "~ON             ", 16);
 	}else{
-		lcdWriteText(1, "OFF             ", 16);
+		lcdWriteText(1, "~OFF            ", 16);
 	}
 }
 
 void CV_Monitor_Show(){
 
-	static const char* fmtstr1 = "A:%3.2f B:%3.2f   ";
-	static const char* fmtstr2 = "C:%3.2f D:%3.2f   ";
-
 	static char str1[17] = {'\0'};
 	static char str2[17] = {'\0'};
 
+	float iv1, iv2, iv3, iv4;
 
 
 	if (HAL_GPIO_ReadPin(GPIO_INPUT_ADCSW1_GPIO_Port, GPIO_INPUT_ADCSW1_Pin)
 			== GPIO_PIN_RESET) {
-		cv1 = 0;
-	}
-	if (HAL_GPIO_ReadPin(GPIO_INPUT_ADCSW2_GPIO_Port, GPIO_INPUT_ADCSW2_Pin)
-			== GPIO_PIN_RESET) {
-		cv2 = 0;
-	}
-	if (HAL_GPIO_ReadPin(GPIO_INPUT_ADCSW3_GPIO_Port, GPIO_INPUT_ADCSW3_Pin)
-			== GPIO_PIN_RESET) {
-		cv3 = 0;
-	}
-	if (HAL_GPIO_ReadPin(GPIO_INPUT_ADCSW4_GPIO_Port, GPIO_INPUT_ADCSW4_Pin)
-			== GPIO_PIN_RESET) {
-		cv4 = 0;
+		iv1 = 0;
+	} else {
+		iv1 = adcResult1 / 500.0f;
 	}
 
-	sprintf(str1,fmtstr1,cv1,cv2);
-	sprintf(str2,fmtstr2,cv3,cv4);
+	if (HAL_GPIO_ReadPin(GPIO_INPUT_ADCSW2_GPIO_Port, GPIO_INPUT_ADCSW2_Pin)
+			== GPIO_PIN_RESET) {
+		iv2 = 0;
+	} else {
+		iv2 = adcResult2 / 500.0f;
+	}
+
+	if (HAL_GPIO_ReadPin(GPIO_INPUT_ADCSW3_GPIO_Port, GPIO_INPUT_ADCSW3_Pin)
+			== GPIO_PIN_RESET) {
+		iv3 = 0;
+	} else {
+		iv3 = adcResult3 / 500.0f;
+	}
+
+	if (HAL_GPIO_ReadPin(GPIO_INPUT_ADCSW4_GPIO_Port, GPIO_INPUT_ADCSW4_Pin)
+			== GPIO_PIN_RESET) {
+		iv4 = 0;
+	} else {
+		iv4 = adcResult4 / 500.0f;
+	}
+
+
+	sprintf(str1, "A:%2.2fV B:%2.2fV ", iv1, iv2);
+	sprintf(str2, "C:%2.2fV D:%2.2fV ", iv3, iv4);
 
 	lcdWriteText(0, &str1[0], 16);
 	lcdWriteText(1, &str2[0], 16);

@@ -11,7 +11,7 @@
 #include "stm32f4xx_hal.h"
 
 void MidiParser_PushByte(uint8_t byte);
-uint32_t Calc96ClckCntFor100KHz(uint32_t bpm);
+uint32_t calcTicksForOneClock(uint32_t bpm);
 
 void ON_RECEIVE_NOTE_ON(uint8_t ch,uint8_t note,uint8_t velocity);
 void ON_RECEIVE_NOTE_OFF(uint8_t ch,uint8_t note,uint8_t velocity);
