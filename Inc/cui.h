@@ -10,12 +10,12 @@
 
 #include "stm32f4xx.h"
 #include "MidiConfig.h"
-
+#include "Sequencer.h"
 
 
 #define LCD_STATE_DEFAULT 0
 #define LCD_STATE_MENU 1
-#define LCD_STATE_SEQ 2
+#define LCD_STATE_SEQ_TOP 2
 //#define LCD_STATE_MIDI 3
 #define LCD_STATE_SYNC 4
 #define LCD_STATE_VELC 5
@@ -26,7 +26,7 @@
 #define LCD_STATE_MIDI_RECEIVE_CONFIG 10
 #define LCD_STATE_PROGRAM_MENU 11
 #define LCD_STATE_ECHOBACK 12
-
+#define LCD_STATE_SEQ_EDIT 13
 
 typedef enum {
 	ITEM_INDEX_SEQUENCER = 0,
@@ -59,11 +59,6 @@ typedef enum {
 #define MENU_TEXTS_3 " MONITOR CV-IN  "
 #define MENU_TEXTS_4 " RESTORE FS     "
 
-#define MENU_SYNC_TEXT_1 "SYNC MODE:      "
-
-#define MENU_SYNC_TEXT_Internal "Internal       "
-#define MENU_SYNC_TEXT_External "External       "
-
 #define MENU_TRIG_TEXT_1 "Trig Threshold  "
 #define MENU_TRIG_TEXT_2 "           %3dV"
 
@@ -85,6 +80,7 @@ typedef struct {
 } MidiSyncConfig;
 
 extern uint8_t LcdMenuSelectedItemIndex;
+extern uint8_t seq_menu_item_index;
 extern volatile uint8_t LcdMenuState;
 extern int ProgramMenuSelectedItemIndex;
 extern uint8_t is_pressed_key_SHIFT;
@@ -99,16 +95,17 @@ void MIDIConfig_Show(MidiConfig* midiConfig);
 void MIDIConfig_ChangeNt(MidiConfig* midiConfig, int add);
 void MIDIConfig_ChangeCh(MidiConfig* midiConfig, int add);
 void MIDIConfig_DisplayChannel(MidiConfig* midiConfig ,int add);
-void MIDIConfig_velocity_curve(MidiConfig* midiConfig, int add);
+void MIDIConfig_VelocityCurve(MidiConfig* midiConfig, int add);
 void MIDIConfig_EchoBack(MidiConfig* config);
-
-void SyncConfig_Show(void);
-void SyncConfig_ChangeSync(void);
+void MIDIConfig_SyncMode(MidiConfig* config);
 
 void TriggerConfig_Show(void);
 void TriggerConfig_Change(int add);
 void ShowProgramMenu(int add);
 void CV_Monitor_Show(void);
+
+void ShowSequencerTop(Sequencer* seq, int add);
+void ShowSequencerEditMode(Sequencer* seq, int moveStep);
 
 void ConfirmFactoryReset(void);
 

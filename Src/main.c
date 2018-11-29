@@ -61,6 +61,7 @@
 #include "Tone.h"
 #include "I2CFlash.h"
 #include "MIDIParser.h"
+#include "Sequencer.h"
 #include "MidiConfig.h"
 /* USER CODE END Includes */
 
@@ -92,11 +93,17 @@ osThreadId defaultTaskHandle;
 //Editing Parameters
 #define READ_SYSTEMCONFIG_FROM_FLASH 1
 #define CURR_GEN &synth[SelectedChannel]
+
+static const uint8_t MIDI_SYSRT_MESSAGE_START = 0xFA;
+static const uint8_t MIDI_SYSRT_MESSAGE_STOP = 0xFC;
+static const uint8_t MIDI_SYSRT_MESSAGE_TIMING_CLOCK = 0xF8;
+
 int SelectedChannel = 0;
 int selected_row = 0;
 int selected_col = 1;
 static int pNo = 0;
 static volatile uint8_t tartgetProgramNo = 0;
+Sequencer sequencer;
 static I2C_EEPROM eeprom;
 static MidiConfig midiConfig;
 volatile float cv1 = 0, cv2 = 0, cv3 = 0, cv4 = 0;
@@ -186,6 +193,7 @@ int main(void)
 	InitRotaryEncoders();
 	ButtonConfigInit();
 	InitSynthesizer();
+	InitSequencer(&sequencer);
 	InitFactorySetTones();
 	I2CFlash_Init(&eeprom, &hi2c1);
 	InitMidiConfig(&midiConfig);
@@ -216,7 +224,7 @@ int main(void)
 		waitUntilReady(&eeprom);
 		ToneCopyToGen(&synth[i], &t);
 	}
-
+	I2CFlash_LoadSequenceData(&eeprom, &sequencer);
 
 	/*Start Processing*/
 	HAL_ADC_Start_DMA(&hadc1, (uint32_t*) &adc_buff, ADC_SAMPLE_LENGTH);
@@ -228,6 +236,8 @@ int main(void)
 	HAL_UART_Receive_IT(&huart1, (uint8_t*) &tmp_byte, 1); //Start MIDI Driver
 
 	HAL_TIM_Base_Start_IT(&htim11);
+
+	HAL_TIM_Base_Start_IT(&htim13);
 
   /* USER CODE END 2 */
 
@@ -1161,7 +1171,32 @@ void onChangeRE_E(int id, int add) {
 	}
 
 	if (LcdMenuState == LCD_STATE_VELC) {
-		MIDIConfig_velocity_curve(&midiConfig, add >= 0 ? 1 : -1);
+		MIDIConfig_VelocityCurve(&midiConfig, add >= 0 ? 1 : -1);
+		return;
+	}
+
+	if (LcdMenuState == LCD_STATE_SEQ_TOP) {
+		ShowSequencerTop(&sequencer, add);
+		return;
+	}
+
+	if(LcdMenuState == LCD_STATE_SEQ_EDIT){
+		if (is_pressed_key_SHIFT) {
+			ChangeBPM(&sequencer, add);
+			ShowSequencerEditMode(&sequencer, 0);
+		} else {
+			ShowSequencerEditMode(&sequencer, add);
+		}
+		return;
+	}
+
+	if (LcdMenuState == LCD_STATE_SYNC) {
+		if (midiConfig.syncMode == InternalClock) {
+			midiConfig.syncMode = ExternalClock;
+		} else {
+			midiConfig.syncMode = InternalClock;
+		}
+		MIDIConfig_SyncMode(&midiConfig);
 		return;
 	}
 
@@ -1264,7 +1299,10 @@ void ON_PUSH_EXIT(void) {
 		return;
 	}
 
-	if (LcdMenuState == LCD_STATE_MIDI_RECEIVE_CONFIG || LcdMenuState == LCD_STATE_VELC || LcdMenuState == LCD_STATE_ECHOBACK) {
+	if (LcdMenuState == LCD_STATE_MIDI_RECEIVE_CONFIG
+			|| LcdMenuState == LCD_STATE_VELC
+			|| LcdMenuState == LCD_STATE_ECHOBACK
+			|| LcdMenuState == LCD_STATE_SYNC) {
 		LcdMenuState = LCD_STATE_MENU;
 		HAL_StatusTypeDef ret = I2CFlash_SaveMidiConfig(&eeprom, &midiConfig);
 		if (ret != HAL_OK) {
@@ -1275,13 +1313,18 @@ void ON_PUSH_EXIT(void) {
 		return;
 	}
 
-	if (LcdMenuState == LCD_STATE_SYNC) {
-		LcdMenuState = LCD_STATE_MENU;
-		SelectMenu(0);
+	if (LcdMenuState == LCD_STATE_SEQ_EDIT) {
+		/*
+		HAL_StatusTypeDef ret = I2CFlash_SaveSequenceData(&eeprom, &sequencer);
+		if (ret != HAL_OK) {
+			lcdWriteText(0, "Error ", 16);
+		}
+		*/
+		ShowSequencerTop(&sequencer, 0);
 		return;
 	}
 
-	if (LcdMenuState == LCD_STATE_MONITOR_CV) {
+	if (LcdMenuState == LCD_STATE_MONITOR_CV || LcdMenuState == LCD_STATE_SEQ_TOP) {
 		LcdMenuState = LCD_STATE_MENU;
 		SelectMenu(0);
 		return;
@@ -1291,23 +1334,6 @@ void ON_PUSH_EXIT(void) {
 		LcdMenuState = LCD_STATE_MENU;
 		SelectMenu(0);
 		return;
-	}
-
-	if (LcdMenuState == LCD_STATE_MENU) {
-		switch (LcdMenuSelectedItemIndex) {
-		case ITEM_INDEX_SEQUENCER:
-			LcdMenuState = LCD_STATE_MENU;
-			break;
-		case ITEM_INDEX_MIDI_ASIGN:
-			ON_PUSH_MENU();
-			break;
-		case ITEM_INDEX_SYNC:
-			LcdMenuState = LCD_STATE_MENU;
-			break;
-		case ITEM_INDEX_VELOCITY_CURVE:
-			LcdMenuState = LCD_STATE_MENU;
-			break;
-		}
 	}
 
 	if (LcdMenuState == LCD_STATE_DEFAULT) {
@@ -1322,19 +1348,20 @@ void ON_PUSH_ENTER(void) {
 	if (LcdMenuState == LCD_STATE_MENU) {
 		switch (LcdMenuSelectedItemIndex) {
 		case ITEM_INDEX_SEQUENCER:
-			LcdMenuState = LCD_STATE_SEQ;
-			break;
+			LcdMenuState = LCD_STATE_SEQ_TOP;
+			ShowSequencerTop(&sequencer, 0);
+			return;
 		case ITEM_INDEX_MIDI_ASIGN:
 			LcdMenuState = LCD_STATE_MIDI_RECEIVE_CONFIG;
 			MIDIConfig_Show(&midiConfig);
 			break;
 		case ITEM_INDEX_SYNC:
 			LcdMenuState = LCD_STATE_SYNC;
-			SyncConfig_Show();
+			MIDIConfig_SyncMode(&midiConfig);
 			break;
 		case ITEM_INDEX_VELOCITY_CURVE:
 			LcdMenuState = LCD_STATE_VELC;
-			MIDIConfig_velocity_curve(&midiConfig, 0);
+			MIDIConfig_VelocityCurve(&midiConfig, 0);
 			break;
 		case ITEM_INDEX_MONITOR_CV:
 			LcdMenuState = LCD_STATE_MONITOR_CV;
@@ -1348,6 +1375,29 @@ void ON_PUSH_ENTER(void) {
 			LcdMenuState = LCD_STATE_FACTORY_RESET_CONFIRM;
 			ConfirmFactoryReset();
 			return;
+		}
+	}
+
+	if (LcdMenuState == LCD_STATE_SEQ_TOP) {
+		switch (seq_menu_item_index) {
+		case 0:  //start/stop
+			if(sequencer.status == SEQ_IDLING){
+				StartSequencer(&sequencer);
+			}else{
+				StopSequencer(&sequencer);
+			}
+			return;
+		case 1: //edit
+			ShowSequencerEditMode(&sequencer,0);
+			return;
+		}
+	}
+
+	if (LcdMenuState == LCD_STATE_SEQ_EDIT) {
+		if (sequencer.status == SEQ_IDLING) {
+			StartSequencer(&sequencer);
+		} else {
+			StopSequencer(&sequencer);
 		}
 	}
 
@@ -1386,6 +1436,12 @@ void ON_PUSH_ENTER(void) {
 				lcdWriteText(0, "Error ", 16);
 				return;
 			}
+
+			ret = I2CFlash_SaveSequenceData(&eeprom, &sequencer);
+			if (ret != HAL_OK) {
+				lcdWriteText(0, "Error ", 16);
+			}
+
 			LcdMenuState = LCD_STATE_DEFAULT;
 			refreshLCD();
 		}
@@ -1504,33 +1560,75 @@ void ON_RELEASE_SHIFT(void) {
 }
 
 void ON_PUSH_A(void) {
-	if (LcdMenuState == LCD_STATE_LOAD_PROGRAM) {
+	if (LcdMenuState == LCD_STATE_LOAD_PROGRAM || LcdMenuState == LCD_STATE_SAVE_PROGRAM) {
 		SelectedChannel = 0;
 		updateSelectProgram();
 	}
+
+	if(LcdMenuState == LCD_STATE_SEQ_EDIT){
+		//step rec
+		sequencer.sequenceData[sequencer.cursor_index].a = !sequencer.sequenceData[sequencer.cursor_index].a;
+		ShowSequencerEditMode(&sequencer, 0);
+		if (!is_pressed_key_SHIFT) {
+			return;
+		}
+	}
+
 	Gen_trig(&synth[0], 1.0f);
 }
 
 void ON_PUSH_B(void) {
-	if (LcdMenuState == LCD_STATE_LOAD_PROGRAM) {
+	if (LcdMenuState == LCD_STATE_LOAD_PROGRAM || LcdMenuState == LCD_STATE_SAVE_PROGRAM) {
 		SelectedChannel = 1;
 		updateSelectProgram();
 	}
+
+	if (LcdMenuState == LCD_STATE_SEQ_EDIT) {
+		//step rec
+		sequencer.sequenceData[sequencer.cursor_index].b =
+				!sequencer.sequenceData[sequencer.cursor_index].b;
+		ShowSequencerEditMode(&sequencer, 0);
+		if (!is_pressed_key_SHIFT) {
+			return;
+		}
+	}
+
 	Gen_trig(&synth[1], 1.0f);
 }
 
 void ON_PUSH_C(void) {
-	if (LcdMenuState == LCD_STATE_LOAD_PROGRAM) {
+	if (LcdMenuState == LCD_STATE_LOAD_PROGRAM || LcdMenuState == LCD_STATE_SAVE_PROGRAM) {
 		SelectedChannel = 2;
 		updateSelectProgram();
 	}
+
+	if (LcdMenuState == LCD_STATE_SEQ_EDIT) {
+		//step rec
+		sequencer.sequenceData[sequencer.cursor_index].c =
+				!sequencer.sequenceData[sequencer.cursor_index].c;
+		ShowSequencerEditMode(&sequencer, 0);
+		if (!is_pressed_key_SHIFT) {
+			return;
+			}
+	}
+
 	Gen_trig(&synth[2], 1.0f);
 }
 
 void ON_PUSH_D(void) {
-	if (LcdMenuState == LCD_STATE_LOAD_PROGRAM) {
+	if (LcdMenuState == LCD_STATE_LOAD_PROGRAM || LcdMenuState == LCD_STATE_SAVE_PROGRAM) {
 		SelectedChannel = 3;
 		updateSelectProgram();
+	}
+
+	if (LcdMenuState == LCD_STATE_SEQ_EDIT) {
+		//step rec
+		sequencer.sequenceData[sequencer.cursor_index].d =
+				!sequencer.sequenceData[sequencer.cursor_index].d;
+		ShowSequencerEditMode(&sequencer, 0);
+		if (!is_pressed_key_SHIFT) {
+			return;
+		}
 	}
 	Gen_trig(&synth[3], 1.0f);
 }
@@ -2175,6 +2273,63 @@ void MIDI_RAW_MESSAGE_CALLBACK(uint8_t *bytes, uint16_t size) {
 	}
 }
 
+void SEQUENCER_BEAT_CALLBACK(int step){
+	Notes* n = &(sequencer.sequenceData[step]);
+	//beat!
+	if (n->a) {
+		Gen_trig(&synth[0], 1.0f);
+	}
+	if (n->b) {
+		Gen_trig(&synth[1], 1.0f);
+	}
+	if (n->c) {
+		Gen_trig(&synth[2], 1.0f);
+	}
+	if (n->d) {
+		Gen_trig(&synth[3], 1.0f);
+	}
+}
+
+
+void ON_PROGRESS_SEQUENCER_CLOCK() {
+	if (midiConfig.syncMode == InternalClock) {
+		HAL_UART_Transmit_IT(&huart1,
+				(uint8_t*) &MIDI_SYSRT_MESSAGE_TIMING_CLOCK, 1);
+	}
+}
+
+void ON_START_SEQUENCER() {
+	if (midiConfig.syncMode == InternalClock) {
+		HAL_UART_Transmit_IT(&huart1, (uint8_t*) &MIDI_SYSRT_MESSAGE_START, 1);
+	}
+}
+
+void ON_STOP_SEQUENCER() {
+	if (midiConfig.syncMode == InternalClock) {
+		HAL_UART_Transmit_IT(&huart1, (uint8_t*) &MIDI_SYSRT_MESSAGE_STOP, 1);
+	}
+}
+
+//// SYNC EXTERNAL MIDI CLOCK
+
+void ON_RECEIVE_CLOCK() {
+	if (midiConfig.syncMode == ExternalClock && sequencer.status == SEQ_RUNNING) {
+		ClockSequencer(&sequencer);
+	}
+}
+
+void ON_RECEIVE_START() {
+	if (midiConfig.syncMode == ExternalClock && sequencer.status == SEQ_IDLING) {
+		StartSequencer(&sequencer);
+	}
+}
+
+void ON_RECEIVE_STOP() {
+	if (midiConfig.syncMode == ExternalClock  && sequencer.status == SEQ_RUNNING) {
+		StopSequencer(&sequencer);
+	}
+}
+
 /* USER CODE END 4 */
 
 /* StartDefaultTask function */
@@ -2220,7 +2375,9 @@ void StartDefaultTask(void const * argument)
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   /* USER CODE BEGIN Callback 0 */
-
+	if (htim->Instance == TIM13 && midiConfig.syncMode == InternalClock) {
+		tickSequencerClock(&sequencer);
+	}
   /* USER CODE END Callback 0 */
   if (htim->Instance == TIM10) {
     HAL_IncTick();

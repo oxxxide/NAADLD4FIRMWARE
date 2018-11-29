@@ -7,18 +7,77 @@
 
 #include "Sequencer.h"
 
-void StartSequencer(Sequencer* seq){
+#define TICK_PER_STEP 6
 
+volatile static uint32_t ticksForOneClock = (uint32_t)(600000.0f / 120.0f / 16.0f + 0.5f);
+
+void tickSequencerClock(Sequencer* seq){
+	if(seq->cnt_tick<=0){
+		ClockSequencer(seq);
+		seq->cnt_tick = ticksForOneClock;
+	}
+	seq->cnt_tick--;
+}
+
+void StartSequencer(Sequencer* seq){
+	seq->clock_cnt = 0;
+	seq->step = 0;
+	seq->status = SEQ_RUNNING;
+	ON_START_SEQUENCER();
 }
 
 void StopSequencer(Sequencer* seq){
-
+	seq->status = SEQ_IDLING;
+	seq->clock_cnt = 0;
+	seq->step = 0;
+	ON_STOP_SEQUENCER();
 }
 
-void TickSequencer(Sequencer* seq){
-
+void ChangeBPM(Sequencer* seq, int add) {
+	int tmp = seq->bpm + add;
+	seq->bpm = (int16_t)LIMIT(tmp, 300, 20);
+	ticksForOneClock = (uint32_t)(600000.0f / (float)seq->bpm / 16.0f + 0.5f) ;
 }
 
-void OnStep(int step){
-
+void SetBPM(Sequencer* seq, int16_t bpm) {
+	seq->bpm = (int16_t)LIMIT(bpm, 300, 20);
+	ticksForOneClock = (uint32_t)(600000.0f / (float)seq->bpm / 16.0f + 0.5f) ;
 }
+
+void ClockSequencer(Sequencer* seq) {
+	ON_PROGRESS_SEQUENCER_CLOCK();
+	if (seq->status == SEQ_RUNNING && seq->clock_cnt <= 0) {
+		SEQUENCER_BEAT_CALLBACK(seq->step);
+		seq->step++;
+		seq->clock_cnt = TICK_PER_STEP;
+		if (seq->step >= seq->num_of_steps) {
+			seq->step = 0;
+		}
+	}
+	seq->clock_cnt--;
+}
+
+void InitSequencer(Sequencer* seq){
+	seq->clock_cnt = 0;
+	seq->step = 0;
+	seq->num_of_steps = 16;
+	seq->bpm = 120;
+	seq->status = SEQ_IDLING;
+	seq->cursor_index = 0;
+	seq->cnt_tick = 0;
+	memset( seq->sequenceData, 0,  (16 * sizeof(Notes)));
+	SetBPM(seq, 120);
+}
+
+__attribute__((weak)) void ON_PROGRESS_SEQUENCER_CLOCK() {
+}
+
+__attribute__((weak)) void ON_START_SEQUENCER() {
+}
+
+__attribute__((weak)) void ON_STOP_SEQUENCER() {
+}
+
+__attribute__((weak)) void SEQUENCER_BEAT_CALLBACK(int step){
+}
+

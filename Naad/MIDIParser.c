@@ -10,17 +10,12 @@
 static void parseSignal(uint8_t b);
 
 
-uint32_t Calc96ClckCntFor100KHz(uint32_t bpm){
-	return 60 / bpm * 100000 / 96;
+uint32_t calcTicksForOneClock(uint32_t bpm){
+	return (60.0f / (float)bpm / 24.0f)* 10000;
 }
 
 void MidiParser_PushByte(uint8_t byte) {
-	/*
-	if (byte == 0xF8) {
-		//MIDI Timing Clock
-		return;
-	}
-	*/
+
 	parseSignal(byte);
 }
 
@@ -33,12 +28,25 @@ void parseSignal(uint8_t b) {
 	static uint8_t rawBytes[3];
 
 	if (status & 0b1000) {
+
 		//Status Byte
 		if (counter >= 1) {
 			counter = 0;
 			//over again
 			parseSignal(b);
 			return;
+		}
+		if (b == 0xF8) {
+			//MIDI Timing Clock
+			ON_RECEIVE_CLOCK();
+		}
+		if (b == 0xFA) {
+			//START
+			ON_RECEIVE_START();
+		}
+		if (b == 0xFC) {
+			//STOP
+			ON_RECEIVE_STOP();
 		}
 	} else {
 		//Data Byte

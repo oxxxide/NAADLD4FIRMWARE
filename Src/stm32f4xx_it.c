@@ -40,7 +40,10 @@
 #include "r_encoder.h"
 #include "buttonconfig.h"
 #include "MIDIParser.h"
+#include "Sequencer.h"
 #include "cui.h"
+
+extern Sequencer sequencer;
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
@@ -332,14 +335,15 @@ void TIM8_UP_TIM13_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM8_UP_TIM13_IRQn 0 */
 
-	uint32_t cnt = Calc96ClckCntFor100KHz(120);
 
-	if(cnt){
-		cnt--;
-	}else{
-		cnt = Calc96ClckCntFor100KHz(120);
-		//progress tick()
+	/*
+	if(sequencer.status == SEQ_RUNNING){
+		tickSequencerClock(&sequencer);
 	}
+
+	*/
+
+
 
   /* USER CODE END TIM8_UP_TIM13_IRQn 0 */
   HAL_TIM_IRQHandler(&htim13);
