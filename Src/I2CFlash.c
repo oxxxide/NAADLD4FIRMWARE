@@ -123,6 +123,10 @@ HAL_StatusTypeDef I2CFlash_FactoryReset(I2C_EEPROM* instance) {
 		}
 	}
 
+	Sequencer seq;
+	InitSequencer(&seq);
+	I2CFlash_SaveSequenceData(instance, &seq);
+
 	return ret;
 }
 
@@ -132,12 +136,8 @@ HAL_StatusTypeDef waitUntilReady(I2C_EEPROM* instance) {
 		if (cnt > 500) {
 			return HAL_TIMEOUT;
 		}
-
 		cnt++;
-		//if (state != HAL_I2C_STATE_READY) {
-			HAL_Delay(7);
-		//}
-
+		HAL_Delay(7);
 	} while (HAL_I2C_GetState(instance->pI2C) != HAL_I2C_STATE_READY);
 	return HAL_OK;
 }
