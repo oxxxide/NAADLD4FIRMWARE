@@ -49,7 +49,7 @@ HAL_StatusTypeDef I2CFlash_SaveMidiConfig(I2C_EEPROM* instance,
 
 HAL_StatusTypeDef I2CFlash_SaveSequenceData(I2C_EEPROM* instance,
 		Sequencer* seq) {
-	uint16_t size = sizeof(Notes);
+	const uint16_t size = sizeof(Notes);
 	Notes *p = &(seq->sequenceData[0]);
 	HAL_StatusTypeDef ret;
 	for(int i=0;i<16;i++){
@@ -59,7 +59,10 @@ HAL_StatusTypeDef I2CFlash_SaveSequenceData(I2C_EEPROM* instance,
 		}
 		ret = waitUntilReady(instance);
 	}
-	return ret;
+	if(ret != HAL_OK){
+		return ret;
+	}
+	return I2CFlash_Write(instance, ROM_ADDRESS_SEQUENCE_DATA + (16*size), (uint8_t*)&seq->bpm , 2);
 }
 
 
@@ -75,6 +78,11 @@ HAL_StatusTypeDef I2CFlash_LoadSequenceData(I2C_EEPROM* instance,
 		}
 		ret = waitUntilReady(instance);
 	}
+	if(ret != HAL_OK){
+		return ret;
+	}
+	ret = I2CFlash_Read(instance, ROM_ADDRESS_SEQUENCE_DATA + (16*size), (uint8_t*)&seq->bpm ,2);
+	SetBPM(seq,seq->bpm);
 	return ret;
 }
 
@@ -119,15 +127,17 @@ HAL_StatusTypeDef I2CFlash_FactoryReset(I2C_EEPROM* instance) {
 }
 
 HAL_StatusTypeDef waitUntilReady(I2C_EEPROM* instance) {
-	HAL_I2C_StateTypeDef state = HAL_I2C_STATE_RESET;
 	int cnt = 0;
 	do {
 		if (cnt > 500) {
 			return HAL_TIMEOUT;
 		}
-		state = HAL_I2C_GetState(instance->pI2C);
+
 		cnt++;
-		HAL_Delay(10);
-	} while (state != HAL_I2C_STATE_READY);
+		//if (state != HAL_I2C_STATE_READY) {
+			HAL_Delay(7);
+		//}
+
+	} while (HAL_I2C_GetState(instance->pI2C) != HAL_I2C_STATE_READY);
 	return HAL_OK;
 }
