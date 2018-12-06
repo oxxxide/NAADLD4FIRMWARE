@@ -618,7 +618,7 @@ static void MX_TIM13_Init(void)
 {
 
   htim13.Instance = TIM13;
-  htim13.Init.Prescaler = 84-1;
+  htim13.Init.Prescaler = 840-1;
   htim13.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim13.Init.Period = 2083-1;
   htim13.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -2375,7 +2375,7 @@ void StartDefaultTask(void const * argument)
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   /* USER CODE BEGIN Callback 0 */
-	if (htim->Instance == TIM13 && midiConfig.syncMode == InternalClock) {
+	if (midiConfig.syncMode == InternalClock && htim->Instance == TIM13) {
 		ClockSequencer(&sequencer);
 	}
   /* USER CODE END Callback 0 */
