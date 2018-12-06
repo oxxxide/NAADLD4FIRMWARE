@@ -9,16 +9,6 @@
 
 #define TICK_PER_STEP 6
 
-volatile static uint32_t ticksForOneClock = (uint32_t)(600000.0f / 120.0f / 16.0f + 0.5f);
-
-void tickSequencerClock(Sequencer* seq){
-	if(seq->cnt_tick<=0){
-		ClockSequencer(seq);
-		seq->cnt_tick = ticksForOneClock;
-	}
-	seq->cnt_tick--;
-}
-
 void StartSequencer(Sequencer* seq){
 	seq->clock_cnt = 0;
 	seq->step = 0;
@@ -36,12 +26,12 @@ void StopSequencer(Sequencer* seq){
 void ChangeBPM(Sequencer* seq, int add) {
 	int tmp = seq->bpm + add;
 	seq->bpm = (int16_t)LIMIT(tmp, 300, 20);
-	ticksForOneClock = (uint32_t)(600000.0f / (float)seq->bpm / 16.0f + 0.5f) ;
+	TIM13->ARR = (uint32_t)(6000000.0f / (float)seq->bpm / 24.0f + 0.5f ) ;
 }
 
 void SetBPM(Sequencer* seq, int16_t bpm) {
 	seq->bpm = (int16_t)LIMIT(bpm, 300, 20);
-	ticksForOneClock = (uint32_t)(600000.0f / (float)seq->bpm / 16.0f + 0.5f) ;
+	TIM13->ARR = (uint32_t)(6000000.0f / (float)seq->bpm / 24.0f + 0.5f ) ;
 }
 
 void ClockSequencer(Sequencer* seq) {
@@ -64,7 +54,6 @@ void InitSequencer(Sequencer* seq){
 	seq->bpm = 120;
 	seq->status = SEQ_IDLING;
 	seq->cursor_index = 0;
-	seq->cnt_tick = 0;
 	memset( seq->sequenceData, 0,  (16 * sizeof(Notes)));
 	SetBPM(seq, 120);
 }

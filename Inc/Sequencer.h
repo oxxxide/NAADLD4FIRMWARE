@@ -30,10 +30,7 @@ typedef struct {
 	Notes sequenceData[16];
 	SequencerStatus status;
 	int8_t cursor_index;
-	int cnt_tick;
 } Sequencer;
-
-void tickSequencerClock(Sequencer* seq);
 
 void StartSequencer(Sequencer* seq);
 
