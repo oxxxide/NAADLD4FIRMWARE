@@ -133,6 +133,7 @@ static void MX_NVIC_Init(void);
 /* Private function prototypes -----------------------------------------------*/
 
 static void ledChange(int number);
+void revert(void);
 void write_LCD_PARAM(const char *name, int value);
 void write_LCD_PARAM_NAME(const char *param_name, const char* value);
 static void refreshLCD(void);
@@ -1144,8 +1145,8 @@ void onChangeRE_D(int id, int add) {
 					synth[SelectedChannel].decay_filter.i_decay + add);
 		} else {
 			//ACCENT
-			int v = (synth[SelectedChannel]).decay_filter.i_amount + add;
-			(synth[SelectedChannel]).decay_filter.i_amount = LIMIT(v, 127, 0);
+			int value = (synth[SelectedChannel]).decay_filter.i_amount + add;
+			Gen_set_filter_amount(CURR_GEN, value);
 		}
 	}
 		break;
@@ -1294,7 +1295,7 @@ void ON_PUSH_EXIT(void) {
 		return;
 	}
 
-	if (LcdMenuState == LCD_STATE_SAVE_PROGRAM || LcdMenuState == LCD_STATE_LOAD_PROGRAM){
+	if (LcdMenuState == LCD_STATE_SAVE_PROGRAM || LcdMenuState == LCD_STATE_LOAD_PROGRAM || LcdMenuState == LCD_STATE_CONFIRM_REVERT){
 		ShowProgramMenu(0);
 		return;
 	}
@@ -1454,7 +1455,18 @@ void ON_PUSH_ENTER(void) {
 			LcdMenuState = LCD_STATE_LOAD_PROGRAM;
 			updateSelectProgram();
 			return;
+		case ITEM_INDEX_REVERT:
+			LcdMenuState = LCD_STATE_CONFIRM_REVERT;
+			showConfirmRevert();
+			return;
 		}
+	}
+
+	if(LcdMenuState == LCD_STATE_CONFIRM_REVERT){
+		revert();
+		LcdMenuState = LCD_STATE_DEFAULT;
+		refreshLCD();
+		return;
 	}
 
 	if (LcdMenuState == LCD_STATE_FACTORY_RESET_CONFIRM) {
@@ -1520,7 +1532,7 @@ void ON_PUSH_ENTER(void) {
 }
 
 static void updateSelectProgram() {
-	static char buff[16];
+	char buff[16];
 	if (LcdMenuState == LCD_STATE_SAVE_PROGRAM) {
 		lcdWriteText(0, "Store Program   ", 16);
 		sprintf(buff, "%c ~ %03d         ", (char) ('A' + SelectedChannel),
@@ -1784,11 +1796,12 @@ static void updateLCD() {
 
 		case ROTARY_ENCODER_D: {
 			if (is_pressed_key_SHIFT) {
-				param = (synth[SelectedChannel]).decay_filter.i_decay;
+				param = Gen_get_filter_decay(CURR_GEN);
 			} else {
 				param = Gen_get_filter_amount(CURR_GEN);
 			}
 			break;
+
 		}
 		}
 		break;
@@ -1847,6 +1860,19 @@ void write_LCD_PARAM_NAME(const char *param_name, const char* value) {
 	static char str[17];
 	sprintf(str, "%-5s: %-9s ", param_name, value);
 	lcdWriteText(1, (char*) str, 16);
+}
+
+void revert() {
+	StopSequencer(&sequencer);
+	for (int i = 0; i < 4; i++) {
+		Tone t;
+		size_t tone_size = sizeof(Tone);
+		I2CFlash_Read(&eeprom, ROM_ADDRESS_TONE_TMP + (i * 64), (uint8_t*) &t,
+				tone_size);
+		waitUntilReady(&eeprom);
+		ToneCopyToGen(&synth[i], &t);
+	}
+	I2CFlash_LoadSequenceData(&eeprom, &sequencer);
 }
 
 /**

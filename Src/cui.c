@@ -273,10 +273,10 @@ void ShowProgramMenu(int add) {
 	LcdMenuState = LCD_STATE_PROGRAM_MENU;
 
 	ProgramMenuSelectedItemIndex += add;
-	if (ProgramMenuSelectedItemIndex > 2) {
+	if (ProgramMenuSelectedItemIndex > 3) {
 		ProgramMenuSelectedItemIndex = 0;
 	} else if (ProgramMenuSelectedItemIndex < 0) {
-		ProgramMenuSelectedItemIndex = 2;
+		ProgramMenuSelectedItemIndex = 3;
 	}
 
 	switch (ProgramMenuSelectedItemIndex) {
@@ -290,10 +290,19 @@ void ShowProgramMenu(int add) {
 		break;
 	case 2:
 		lcdWriteText(0, "~Load  Program  ", 16);
-		lcdWriteText(1, "                ", 16);
+		lcdWriteText(1, " Revert         ", 16);
+		break;
+	case 3:
+		lcdWriteText(0, " Load  Program  ", 16);
+		lcdWriteText(1, "~Revert         ", 16);
 		break;
 	}
 
+}
+
+void showConfirmRevert() {
+		lcdWriteText(0, "Revert?         ", 16);
+		lcdWriteText(1, "N:EXIT  Y:ENTER ", 16);
 }
 
 void MIDIConfig_SyncMode(MidiConfig* config){

@@ -8,7 +8,6 @@
 #include "I2CFlash.h"
 #include "Tone.h"
 
-
 #define TIMEOUT_MSEC_EEPROM 2000
 
 void I2CFlash_Init(I2C_EEPROM* instance, I2C_HandleTypeDef *hi2c) {
@@ -62,7 +61,20 @@ HAL_StatusTypeDef I2CFlash_SaveSequenceData(I2C_EEPROM* instance,
 	if(ret != HAL_OK){
 		return ret;
 	}
-	return I2CFlash_Write(instance, ROM_ADDRESS_SEQUENCE_DATA + (16*size), (uint8_t*)&seq->bpm , 2);
+	ret = I2CFlash_Write(instance, ROM_ADDRESS_SEQUENCE_BPM, (uint8_t*)&seq->bpm , 2);
+	if(ret != HAL_OK){
+		return ret;
+	}
+	ret = waitUntilReady(instance);
+	if(ret != HAL_OK){
+			return ret;
+	}
+	ret = I2CFlash_Write(instance, ROM_ADDRESS_SEQUENCE_STEPLENGTH, &seq->num_of_steps , 1);
+	if(ret != HAL_OK){
+				return ret;
+	}
+	ret = waitUntilReady(instance);
+	return ret;
 }
 
 
@@ -71,18 +83,37 @@ HAL_StatusTypeDef I2CFlash_LoadSequenceData(I2C_EEPROM* instance,
 	uint16_t size = sizeof(Notes);
 	Notes *p = &(seq->sequenceData[0]);
 	HAL_StatusTypeDef ret;
-	for(int i=0;i<16;i++){
-		ret = I2CFlash_Read(instance, ROM_ADDRESS_SEQUENCE_DATA + (i*size), (uint8_t*)&p[i] ,size);
-		if(ret != HAL_OK){
+	for (int i = 0; i < 16; i++) {
+		ret = I2CFlash_Read(instance, ROM_ADDRESS_SEQUENCE_DATA + (i * size),
+				(uint8_t*) &p[i], size);
+		if (ret != HAL_OK) {
 			return ret;
 		}
 		ret = waitUntilReady(instance);
 	}
-	if(ret != HAL_OK){
+	if (ret != HAL_OK) {
 		return ret;
 	}
-	ret = I2CFlash_Read(instance, ROM_ADDRESS_SEQUENCE_DATA + (16*size), (uint8_t*)&seq->bpm ,2);
-	SetBPM(seq,seq->bpm);
+
+	ret = I2CFlash_Read(instance, ROM_ADDRESS_SEQUENCE_BPM,
+			(uint8_t*) &seq->bpm, 2);
+	if (ret != HAL_OK) {
+		return ret;
+	}
+	SetBPM(seq, seq->bpm);
+
+	ret = waitUntilReady(instance);
+	if (ret != HAL_OK) {
+		return ret;
+	}
+
+	ret = I2CFlash_Read(instance, ROM_ADDRESS_SEQUENCE_STEPLENGTH,
+			&seq->num_of_steps, 1);
+	seq->num_of_steps = LIMIT(seq->num_of_steps, 0xf, 0);
+	if (ret != HAL_OK) {
+		return ret;
+	}
+	ret = waitUntilReady(instance);
 	return ret;
 }
 

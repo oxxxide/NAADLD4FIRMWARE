@@ -27,6 +27,7 @@
 #define LCD_STATE_PROGRAM_MENU 11
 #define LCD_STATE_ECHOBACK 12
 #define LCD_STATE_SEQ_EDIT 13
+#define LCD_STATE_CONFIRM_REVERT 14
 
 typedef enum {
 	ITEM_INDEX_SEQUENCER = 0,
@@ -39,7 +40,7 @@ typedef enum {
 } MENU_ITEM;
 
 typedef enum {
-	ITEM_INDEX_TEMPSAVE = 0, ITEM_INDEX_STORE = 1, ITEM_INDEX_LOAD = 2
+	ITEM_INDEX_TEMPSAVE = 0, ITEM_INDEX_STORE = 1, ITEM_INDEX_LOAD = 2, ITEM_INDEX_REVERT = 3,
 } PROGRAM_MENU_ITEM;
 
 /*
@@ -102,6 +103,7 @@ void MIDIConfig_SyncMode(MidiConfig* config);
 void TriggerConfig_Show(void);
 void TriggerConfig_Change(int add);
 void ShowProgramMenu(int add);
+void showConfirmRevert(void);
 void CV_Monitor_Show(void);
 
 void ShowSequencerTop(Sequencer* seq, int add);
