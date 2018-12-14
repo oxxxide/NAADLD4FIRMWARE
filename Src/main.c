@@ -132,7 +132,8 @@ static void MX_NVIC_Init(void);
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
 
-static void ledChange(int number);
+static void lightsOff(void);
+static void updateLed(void);
 void revert(void);
 void write_LCD_PARAM(const char *name, int value);
 void write_LCD_PARAM_NAME(const char *param_name, const char* value);
@@ -800,8 +801,8 @@ static void refresh1stLine(void) {
 	lcdWriteText(0, (char*) cbuff, 16);
 }
 
-static void ledChange(int number) {
 
+static void lightsOff(void){
 	HAL_GPIO_WritePin(BLED1_GPIO_Port,
 	BLED1_Pin |
 	BLED2_Pin |
@@ -810,8 +811,11 @@ static void ledChange(int number) {
 	BLED5_Pin |
 	BLED6_Pin |
 	BLED7_Pin, GPIO_PIN_RESET);
+}
 
-	switch (number) {
+static void updateLed() {
+	lightsOff();
+	switch (selected_row) {
 	case 6:
 		HAL_GPIO_WritePin(BLED1_GPIO_Port, BLED1_Pin, GPIO_PIN_SET);
 		break;
@@ -852,7 +856,7 @@ void onChangeRE_S(int id, int add) {
 	}
 
 	selected_row = LIMIT(selected_row + (add > 0 ? 1 : -1), 6, 0);
-	ledChange(selected_row);
+	updateLed();
 	refreshLCD();
 
 }
@@ -1306,6 +1310,7 @@ void ON_PUSH_MENU(void) {
 	}
 
 	if (LcdMenuState == LCD_STATE_DEFAULT) {
+		lightsOff();
 		SelectMenu(0);
 		LcdMenuState = LCD_STATE_MENU;
 		return;
@@ -1316,6 +1321,7 @@ void ON_PUSH_EXIT(void) {
 
 	if (LcdMenuState == LCD_STATE_MENU || LcdMenuState == LCD_STATE_PROGRAM_MENU) {
 		LcdMenuState = LCD_STATE_DEFAULT;
+		updateLed();
 		refreshLCD();
 		return;
 	}
@@ -1558,6 +1564,7 @@ static void updateSelectProgram() {
 
 void ON_PUSH_PROGRAM(void) {
 	if(LcdMenuState == LCD_STATE_DEFAULT){
+		lightsOff();
 		ShowProgramMenu(0);
 		return;
 	}
@@ -2310,7 +2317,6 @@ void MIDI_RAW_MESSAGE_CALLBACK(uint8_t *bytes, uint16_t size) {
 }
 
 void SEQUENCER_BEAT_CALLBACK(uint8_t * step_array){
-
 	uint8_t step;
 	Notes* n;
 
@@ -2337,26 +2343,6 @@ void SEQUENCER_BEAT_CALLBACK(uint8_t * step_array){
 	if (n->d) {
 		Gen_trig(&synth[3], 1.0f);
 	}
-
-	/*
-	for(int i=0;i<4;i++){
-		Notes* n = &(sequencer.sequenceData[step[i]]);
-		//beat!
-		if (n->a) {
-			Gen_trig(&synth[0], 1.0f);
-		}
-		if (n->b) {
-			Gen_trig(&synth[1], 1.0f);
-		}
-		if (n->c) {
-			Gen_trig(&synth[2], 1.0f);
-		}
-		if (n->d) {
-			Gen_trig(&synth[3], 1.0f);
-		}
-	}
-	*/
-
 }
 
 

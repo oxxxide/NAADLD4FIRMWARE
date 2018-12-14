@@ -37,7 +37,7 @@ uint8_t seq_menu_item_index = 0;
 
 int ProgramMenuSelectedItemIndex = 0;
 
-volatile uint8_t LcdMenuState = LCD_STATE_DEFAULT;
+volatile LCD_STATE LcdMenuState = LCD_STATE_DEFAULT;
 uint8_t is_pressed_key_SHIFT = 0;
 
 

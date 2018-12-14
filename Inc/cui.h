@@ -12,11 +12,9 @@
 #include "MidiConfig.h"
 #include "Sequencer.h"
 
-
+/*
 #define LCD_STATE_DEFAULT 0
 #define LCD_STATE_MENU 1
-//#define LCD_STATE_SEQ_TOP 2
-//#define LCD_STATE_MIDI 3
 #define LCD_STATE_SYNC 4
 #define LCD_STATE_VELC 5
 #define LCD_STATE_LOAD_PROGRAM 6
@@ -29,6 +27,23 @@
 #define LCD_STATE_SEQ_EDIT 13
 #define LCD_STATE_CONFIRM_REVERT 14
 #define LCD_STATE_SEQ_STEP_CFG 15
+*/
+typedef enum {
+	LCD_STATE_DEFAULT = 0,
+	LCD_STATE_MENU = 1,
+	LCD_STATE_SYNC = 4,
+	LCD_STATE_VELC = 5,
+	LCD_STATE_LOAD_PROGRAM = 6,
+	LCD_STATE_SAVE_PROGRAM = 7,
+	LCD_STATE_MONITOR_CV = 8,
+	LCD_STATE_FACTORY_RESET_CONFIRM = 9,
+	LCD_STATE_MIDI_RECEIVE_CONFIG = 10,
+	LCD_STATE_PROGRAM_MENU = 11,
+	LCD_STATE_ECHOBACK = 12,
+	LCD_STATE_SEQ_EDIT = 13,
+	LCD_STATE_CONFIRM_REVERT = 14,
+	LCD_STATE_SEQ_STEP_CFG = 15
+} LCD_STATE;
 
 typedef enum {
 	ITEM_INDEX_SEQUENCER = 0,
@@ -83,7 +98,7 @@ typedef struct {
 
 extern uint8_t LcdMenuSelectedItemIndex;
 extern uint8_t seq_menu_item_index;
-extern volatile uint8_t LcdMenuState;
+extern volatile LCD_STATE LcdMenuState;
 extern int ProgramMenuSelectedItemIndex;
 extern uint8_t is_pressed_key_SHIFT;
 extern MidiSyncConfig midiSyncConfig;
