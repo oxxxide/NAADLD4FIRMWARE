@@ -69,7 +69,7 @@ HAL_StatusTypeDef I2CFlash_SaveSequenceData(I2C_EEPROM* instance,
 	if(ret != HAL_OK){
 			return ret;
 	}
-	ret = I2CFlash_Write(instance, ROM_ADDRESS_SEQUENCE_STEPLENGTH, &seq->num_of_steps , 1);
+	ret = I2CFlash_Write(instance, ROM_ADDRESS_SEQUENCE_STEPLENGTH, &seq->step_length_array[0] , 4);
 	if(ret != HAL_OK){
 				return ret;
 	}
@@ -108,8 +108,11 @@ HAL_StatusTypeDef I2CFlash_LoadSequenceData(I2C_EEPROM* instance,
 	}
 
 	ret = I2CFlash_Read(instance, ROM_ADDRESS_SEQUENCE_STEPLENGTH,
-			&seq->num_of_steps, 1);
-	seq->num_of_steps = LIMIT(seq->num_of_steps, 0xf, 0);
+			&seq->step_length_array[0], 4);
+	seq->step_length_array[0] = LIMIT(seq->step_length_array[0], 16, 1);
+	seq->step_length_array[1] = LIMIT(seq->step_length_array[1], 16, 1);
+	seq->step_length_array[2] = LIMIT(seq->step_length_array[2], 16, 1);
+	seq->step_length_array[3] = LIMIT(seq->step_length_array[3], 16, 1);
 	if (ret != HAL_OK) {
 		return ret;
 	}

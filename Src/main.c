@@ -859,6 +859,11 @@ void onChangeRE_S(int id, int add) {
 
 void onChangeRE_A(int id, int add) {
 
+	if (LcdMenuState == LCD_STATE_SEQ_STEP_CFG) {
+		showSequencerStepConfig(&sequencer, 0, add);
+		return;
+	}
+
 	if (LcdMenuState != LCD_STATE_DEFAULT) {
 		return;
 	}
@@ -934,6 +939,11 @@ void onChangeRE_A(int id, int add) {
 
 void onChangeRE_B(int id, int add) {
 
+	if (LcdMenuState == LCD_STATE_SEQ_STEP_CFG) {
+		showSequencerStepConfig(&sequencer, 1, add);
+		return;
+	}
+
 	if (LcdMenuState != LCD_STATE_DEFAULT) {
 		return;
 	}
@@ -1006,6 +1016,11 @@ void onChangeRE_C(int id, int add) {
 
 	if (LcdMenuState == LCD_STATE_MIDI_RECEIVE_CONFIG) {
 		MIDIConfig_ChangeCh(&midiConfig, add >= 0 ? 1 : -1);
+		return;
+	}
+
+	if (LcdMenuState == LCD_STATE_SEQ_STEP_CFG) {
+		showSequencerStepConfig(&sequencer, 2, add);
 		return;
 	}
 
@@ -1100,6 +1115,11 @@ void onChangeRE_D(int id, int add) {
 		return;
 	}
 
+	if (LcdMenuState == LCD_STATE_SEQ_STEP_CFG) {
+		showSequencerStepConfig(&sequencer, 3, add);
+		return;
+	}
+
 	if (LcdMenuState != LCD_STATE_DEFAULT) {
 		return;
 	}
@@ -1173,11 +1193,6 @@ void onChangeRE_E(int id, int add) {
 
 	if (LcdMenuState == LCD_STATE_VELC) {
 		MIDIConfig_VelocityCurve(&midiConfig, add >= 0 ? 1 : -1);
-		return;
-	}
-
-	if (LcdMenuState == LCD_STATE_SEQ_TOP) {
-		ShowSequencerTop(&sequencer, add);
 		return;
 	}
 
@@ -1265,6 +1280,16 @@ void ON_PUSH_MENU(void) {
 		return;
 	}
 
+	if (LcdMenuState == LCD_STATE_SEQ_EDIT) {
+		showSequencerStepConfig(&sequencer, -1, 0);
+		return;
+	}
+
+	if (LcdMenuState == LCD_STATE_SEQ_STEP_CFG) {
+		ShowSequencerEditMode(&sequencer, 0);
+		return;
+	}
+
 	if (LcdMenuState == LCD_STATE_MIDI_RECEIVE_CONFIG) {
 		MIDIConfig_DisplayChannel(&midiConfig,1);
 		return;
@@ -1314,18 +1339,7 @@ void ON_PUSH_EXIT(void) {
 		return;
 	}
 
-	if (LcdMenuState == LCD_STATE_SEQ_EDIT) {
-		/*
-		HAL_StatusTypeDef ret = I2CFlash_SaveSequenceData(&eeprom, &sequencer);
-		if (ret != HAL_OK) {
-			lcdWriteText(0, "Error ", 16);
-		}
-		*/
-		ShowSequencerTop(&sequencer, 0);
-		return;
-	}
-
-	if (LcdMenuState == LCD_STATE_MONITOR_CV || LcdMenuState == LCD_STATE_SEQ_TOP) {
+	if (LcdMenuState == LCD_STATE_MONITOR_CV || LcdMenuState == LCD_STATE_SEQ_EDIT  || LcdMenuState == LCD_STATE_SEQ_STEP_CFG) {
 		LcdMenuState = LCD_STATE_MENU;
 		SelectMenu(0);
 		return;
@@ -1338,7 +1352,17 @@ void ON_PUSH_EXIT(void) {
 	}
 
 	if (LcdMenuState == LCD_STATE_DEFAULT) {
-		//NOP
+
+		//change column
+		int newc = selected_col + 1;
+		if (newc < COL_LEFT_EDGE) {
+			newc = COL_RIGHT_EDGE;
+		} else if (newc > COL_RIGHT_EDGE) {
+			newc = COL_LEFT_EDGE;
+		}
+		selected_col = newc;
+		refreshLCD();
+
 		return;
 	}
 
@@ -1349,8 +1373,8 @@ void ON_PUSH_ENTER(void) {
 	if (LcdMenuState == LCD_STATE_MENU) {
 		switch (LcdMenuSelectedItemIndex) {
 		case ITEM_INDEX_SEQUENCER:
-			LcdMenuState = LCD_STATE_SEQ_TOP;
-			ShowSequencerTop(&sequencer, 0);
+			LcdMenuState = LCD_STATE_SEQ_EDIT;
+			ShowSequencerEditMode(&sequencer,0);
 			return;
 		case ITEM_INDEX_MIDI_ASIGN:
 			LcdMenuState = LCD_STATE_MIDI_RECEIVE_CONFIG;
@@ -1379,22 +1403,8 @@ void ON_PUSH_ENTER(void) {
 		}
 	}
 
-	if (LcdMenuState == LCD_STATE_SEQ_TOP) {
-		switch (seq_menu_item_index) {
-		case 0:  //start/stop
-			if(sequencer.status == SEQ_IDLING){
-				StartSequencer(&sequencer);
-			}else{
-				StopSequencer(&sequencer);
-			}
-			return;
-		case 1: //edit
-			ShowSequencerEditMode(&sequencer,0);
-			return;
-		}
-	}
-
-	if (LcdMenuState == LCD_STATE_SEQ_EDIT) {
+	if (LcdMenuState == LCD_STATE_SEQ_EDIT
+			|| LcdMenuState == LCD_STATE_SEQ_STEP_CFG) {
 		if (sequencer.status == SEQ_IDLING) {
 			StartSequencer(&sequencer);
 		} else {
@@ -2299,21 +2309,54 @@ void MIDI_RAW_MESSAGE_CALLBACK(uint8_t *bytes, uint16_t size) {
 	}
 }
 
-void SEQUENCER_BEAT_CALLBACK(int step){
-	Notes* n = &(sequencer.sequenceData[step]);
-	//beat!
+void SEQUENCER_BEAT_CALLBACK(uint8_t * step_array){
+
+	uint8_t step;
+	Notes* n;
+
+	step = sequencer.step[0];
+	n = &(sequencer.sequenceData[step]);
 	if (n->a) {
 		Gen_trig(&synth[0], 1.0f);
 	}
+
+	step = sequencer.step[1];
+	n = &(sequencer.sequenceData[step]);
 	if (n->b) {
 		Gen_trig(&synth[1], 1.0f);
 	}
+
+	step = sequencer.step[2];
+	n = &(sequencer.sequenceData[step]);
 	if (n->c) {
 		Gen_trig(&synth[2], 1.0f);
 	}
+
+	step = sequencer.step[3];
+	n = &(sequencer.sequenceData[step]);
 	if (n->d) {
 		Gen_trig(&synth[3], 1.0f);
 	}
+
+	/*
+	for(int i=0;i<4;i++){
+		Notes* n = &(sequencer.sequenceData[step[i]]);
+		//beat!
+		if (n->a) {
+			Gen_trig(&synth[0], 1.0f);
+		}
+		if (n->b) {
+			Gen_trig(&synth[1], 1.0f);
+		}
+		if (n->c) {
+			Gen_trig(&synth[2], 1.0f);
+		}
+		if (n->d) {
+			Gen_trig(&synth[3], 1.0f);
+		}
+	}
+	*/
+
 }
 
 

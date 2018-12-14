@@ -221,27 +221,6 @@ void MIDIConfig_VelocityCurve(MidiConfig* midiConfig, int add) {
 	}
 }
 
-void ShowSequencerTop(Sequencer* seq, int add) {
-	LcdMenuState = LCD_STATE_SEQ_TOP;
-	if (add != 0) {
-		if (seq_menu_item_index) {
-			seq_menu_item_index = 0;
-		} else {
-			seq_menu_item_index = 1;
-		}
-	}
-	switch (seq_menu_item_index) {
-	case 0:
-		lcdWriteText(0, "~Start/Stop     ", 16);
-		lcdWriteText(1, " Edit           ", 16);
-		break;
-	case 1:
-		lcdWriteText(0, " Start/Stop     ", 16);
-		lcdWriteText(1, "~Edit           ", 16);
-		break;
-	}
-}
-
 void ShowSequencerEditMode(Sequencer* seq, int moveStep){
 	LcdMenuState = LCD_STATE_SEQ_EDIT;
 	char str[17] = { '\0' };
@@ -265,6 +244,47 @@ void ShowSequencerEditMode(Sequencer* seq, int moveStep){
 			n->b ? '*' : '-',
 			n->c ? '*' : '-',
 			n->d ? '*' : '-');
+	lcdWriteText(1, str, 16);
+}
+
+void showSequencerStepConfig(Sequencer* seq, int knob, int add) {
+	LcdMenuState = LCD_STATE_SEQ_STEP_CFG;
+
+	if (add > 0) {
+		add = 1;
+	} else if (add < 0) {
+		add = -1;
+	}
+
+	int tmp = 0;
+
+	switch (knob) {
+	case 0:
+		tmp = seq->step_length_array[0] + add;
+		seq->step_length_array[0] = (uint8_t)LIMIT(tmp, 16, 1);
+		break;
+	case 1:
+		tmp = seq->step_length_array[1] + add;
+		seq->step_length_array[1] = (uint8_t)LIMIT(tmp, 16, 1);
+		break;
+	case 2:
+		tmp = seq->step_length_array[2] + add;
+		seq->step_length_array[2] = (uint8_t)LIMIT(tmp, 16, 1);
+		break;
+	case 3:
+		tmp = seq->step_length_array[3] + add;
+		seq->step_length_array[3] = (uint8_t)LIMIT(tmp, 16, 1);
+		break;
+	}
+
+	char str[17] = { '\0' };
+	sprintf(str,"LEN  %2d %2d %2d %2d",
+			seq->step_length_array[0],
+			seq->step_length_array[1],
+			seq->step_length_array[2],
+			seq->step_length_array[3]
+			);
+	lcdWriteText(0, "STEP  A  B  C  D", 16);
 	lcdWriteText(1, str, 16);
 }
 

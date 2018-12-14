@@ -15,7 +15,7 @@
 
 #define LCD_STATE_DEFAULT 0
 #define LCD_STATE_MENU 1
-#define LCD_STATE_SEQ_TOP 2
+//#define LCD_STATE_SEQ_TOP 2
 //#define LCD_STATE_MIDI 3
 #define LCD_STATE_SYNC 4
 #define LCD_STATE_VELC 5
@@ -28,6 +28,7 @@
 #define LCD_STATE_ECHOBACK 12
 #define LCD_STATE_SEQ_EDIT 13
 #define LCD_STATE_CONFIRM_REVERT 14
+#define LCD_STATE_SEQ_STEP_CFG 15
 
 typedef enum {
 	ITEM_INDEX_SEQUENCER = 0,
@@ -106,8 +107,9 @@ void ShowProgramMenu(int add);
 void showConfirmRevert(void);
 void CV_Monitor_Show(void);
 
-void ShowSequencerTop(Sequencer* seq, int add);
+//void ShowSequencerTop(Sequencer* seq, int add);
 void ShowSequencerEditMode(Sequencer* seq, int moveStep);
+void showSequencerStepConfig(Sequencer* seq, int konb, int add);
 
 void ConfirmFactoryReset(void);
 
