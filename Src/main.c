@@ -1382,7 +1382,7 @@ void ON_PUSH_ENTER(void) {
 			LcdMenuState = LCD_STATE_SEQ_EDIT;
 			ShowSequencerEditMode(&sequencer,0);
 			return;
-		case ITEM_INDEX_MIDI_ASIGN:
+		case ITEM_INDEX_MIDI_MAPPING:
 			LcdMenuState = LCD_STATE_MIDI_RECEIVE_CONFIG;
 			MIDIConfig_Show(&midiConfig);
 			break;

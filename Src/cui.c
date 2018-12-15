@@ -71,12 +71,12 @@ void SelectMenu(int add) {
 		lcdWriteText(0," Sequencer       ",16);
 		lcdWriteText(1,"~Sync            ",16);
 		break;
-	case ITEM_INDEX_MIDI_ASIGN:
-		lcdWriteText(0,"~MIDI Asign      ",16);
+	case ITEM_INDEX_MIDI_MAPPING:
+		lcdWriteText(0,"~MIDI Mapping    ",16);
 		lcdWriteText(1," Velocity Curve  ",16);
 		break;
 	case ITEM_INDEX_VELOCITY_CURVE:
-		lcdWriteText(0," MIDI Asign      ",16);
+		lcdWriteText(0," MIDI Mapping    ",16);
 		lcdWriteText(1,"~Velocity Curve  ",16);
 		break;
 	case ITEM_INDEX_MONITOR_CV:
