@@ -12,11 +12,9 @@
 #include "MidiConfig.h"
 #include "Sequencer.h"
 
-
+/*
 #define LCD_STATE_DEFAULT 0
 #define LCD_STATE_MENU 1
-#define LCD_STATE_SEQ_TOP 2
-//#define LCD_STATE_MIDI 3
 #define LCD_STATE_SYNC 4
 #define LCD_STATE_VELC 5
 #define LCD_STATE_LOAD_PROGRAM 6
@@ -27,11 +25,30 @@
 #define LCD_STATE_PROGRAM_MENU 11
 #define LCD_STATE_ECHOBACK 12
 #define LCD_STATE_SEQ_EDIT 13
+#define LCD_STATE_CONFIRM_REVERT 14
+#define LCD_STATE_SEQ_STEP_CFG 15
+*/
+typedef enum {
+	LCD_STATE_DEFAULT = 0,
+	LCD_STATE_MENU = 1,
+	LCD_STATE_SYNC = 4,
+	LCD_STATE_VELC = 5,
+	LCD_STATE_LOAD_PROGRAM = 6,
+	LCD_STATE_SAVE_PROGRAM = 7,
+	LCD_STATE_MONITOR_CV = 8,
+	LCD_STATE_FACTORY_RESET_CONFIRM = 9,
+	LCD_STATE_MIDI_RECEIVE_CONFIG = 10,
+	LCD_STATE_PROGRAM_MENU = 11,
+	LCD_STATE_ECHOBACK = 12,
+	LCD_STATE_SEQ_EDIT = 13,
+	LCD_STATE_CONFIRM_REVERT = 14,
+	LCD_STATE_SEQ_STEP_CFG = 15
+} LCD_STATE;
 
 typedef enum {
 	ITEM_INDEX_SEQUENCER = 0,
 	ITEM_INDEX_SYNC = 1,
-	ITEM_INDEX_MIDI_ASIGN = 2,
+	ITEM_INDEX_MIDI_MAPPING = 2,
 	ITEM_INDEX_VELOCITY_CURVE = 3,
 	ITEM_INDEX_MONITOR_CV = 4,
 	ITEM_INDEX_ECHO_BACK = 5,
@@ -39,7 +56,7 @@ typedef enum {
 } MENU_ITEM;
 
 typedef enum {
-	ITEM_INDEX_TEMPSAVE = 0, ITEM_INDEX_STORE = 1, ITEM_INDEX_LOAD = 2
+	ITEM_INDEX_TEMPSAVE = 0, ITEM_INDEX_STORE = 1, ITEM_INDEX_LOAD = 2, ITEM_INDEX_REVERT = 3,
 } PROGRAM_MENU_ITEM;
 
 /*
@@ -81,7 +98,7 @@ typedef struct {
 
 extern uint8_t LcdMenuSelectedItemIndex;
 extern uint8_t seq_menu_item_index;
-extern volatile uint8_t LcdMenuState;
+extern volatile LCD_STATE LcdMenuState;
 extern int ProgramMenuSelectedItemIndex;
 extern uint8_t is_pressed_key_SHIFT;
 extern MidiSyncConfig midiSyncConfig;
@@ -102,10 +119,12 @@ void MIDIConfig_SyncMode(MidiConfig* config);
 void TriggerConfig_Show(void);
 void TriggerConfig_Change(int add);
 void ShowProgramMenu(int add);
+void showConfirmRevert(void);
 void CV_Monitor_Show(void);
 
-void ShowSequencerTop(Sequencer* seq, int add);
+//void ShowSequencerTop(Sequencer* seq, int add);
 void ShowSequencerEditMode(Sequencer* seq, int moveStep);
+void showSequencerStepConfig(Sequencer* seq, int konb, int add);
 
 void ConfirmFactoryReset(void);
 

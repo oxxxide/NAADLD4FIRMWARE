@@ -39,7 +39,8 @@ typedef struct {
 
 	float carr_level;
 	float noise_level; // range: 0 to 1
-	float filter_amount;
+
+	//float filter_amount;
 
 	float mod_depth;
 	float cf_ringmod_dev; // 1/(1+mod_depth)

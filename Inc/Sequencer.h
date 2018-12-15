@@ -24,9 +24,9 @@ typedef struct {
 
 typedef struct {
 	int16_t bpm;
-	uint8_t step;
+	uint8_t step[4];
 	uint8_t clock_cnt;
-	uint8_t num_of_steps;
+	uint8_t step_length_array[4];
 	Notes sequenceData[16];
 	SequencerStatus status;
 	int8_t cursor_index;
@@ -50,6 +50,6 @@ void ON_START_SEQUENCER();
 
 void ON_STOP_SEQUENCER();
 
-void SEQUENCER_BEAT_CALLBACK(int step);
+void SEQUENCER_BEAT_CALLBACK(uint8_t * step);
 
 #endif /* SEQUENCER_H_ */

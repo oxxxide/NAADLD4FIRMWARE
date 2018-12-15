@@ -37,7 +37,7 @@ uint8_t seq_menu_item_index = 0;
 
 int ProgramMenuSelectedItemIndex = 0;
 
-volatile uint8_t LcdMenuState = LCD_STATE_DEFAULT;
+volatile LCD_STATE LcdMenuState = LCD_STATE_DEFAULT;
 uint8_t is_pressed_key_SHIFT = 0;
 
 
@@ -71,12 +71,12 @@ void SelectMenu(int add) {
 		lcdWriteText(0," Sequencer       ",16);
 		lcdWriteText(1,"~Sync            ",16);
 		break;
-	case ITEM_INDEX_MIDI_ASIGN:
-		lcdWriteText(0,"~MIDI Asign      ",16);
+	case ITEM_INDEX_MIDI_MAPPING:
+		lcdWriteText(0,"~MIDI Mapping    ",16);
 		lcdWriteText(1," Velocity Curve  ",16);
 		break;
 	case ITEM_INDEX_VELOCITY_CURVE:
-		lcdWriteText(0," MIDI Asign      ",16);
+		lcdWriteText(0," MIDI Mapping    ",16);
 		lcdWriteText(1,"~Velocity Curve  ",16);
 		break;
 	case ITEM_INDEX_MONITOR_CV:
@@ -221,27 +221,6 @@ void MIDIConfig_VelocityCurve(MidiConfig* midiConfig, int add) {
 	}
 }
 
-void ShowSequencerTop(Sequencer* seq, int add) {
-	LcdMenuState = LCD_STATE_SEQ_TOP;
-	if (add != 0) {
-		if (seq_menu_item_index) {
-			seq_menu_item_index = 0;
-		} else {
-			seq_menu_item_index = 1;
-		}
-	}
-	switch (seq_menu_item_index) {
-	case 0:
-		lcdWriteText(0, "~Start/Stop     ", 16);
-		lcdWriteText(1, " Edit           ", 16);
-		break;
-	case 1:
-		lcdWriteText(0, " Start/Stop     ", 16);
-		lcdWriteText(1, "~Edit           ", 16);
-		break;
-	}
-}
-
 void ShowSequencerEditMode(Sequencer* seq, int moveStep){
 	LcdMenuState = LCD_STATE_SEQ_EDIT;
 	char str[17] = { '\0' };
@@ -268,15 +247,56 @@ void ShowSequencerEditMode(Sequencer* seq, int moveStep){
 	lcdWriteText(1, str, 16);
 }
 
+void showSequencerStepConfig(Sequencer* seq, int knob, int add) {
+	LcdMenuState = LCD_STATE_SEQ_STEP_CFG;
+
+	if (add > 0) {
+		add = 1;
+	} else if (add < 0) {
+		add = -1;
+	}
+
+	int tmp = 0;
+
+	switch (knob) {
+	case 0:
+		tmp = seq->step_length_array[0] + add;
+		seq->step_length_array[0] = (uint8_t)LIMIT(tmp, 16, 1);
+		break;
+	case 1:
+		tmp = seq->step_length_array[1] + add;
+		seq->step_length_array[1] = (uint8_t)LIMIT(tmp, 16, 1);
+		break;
+	case 2:
+		tmp = seq->step_length_array[2] + add;
+		seq->step_length_array[2] = (uint8_t)LIMIT(tmp, 16, 1);
+		break;
+	case 3:
+		tmp = seq->step_length_array[3] + add;
+		seq->step_length_array[3] = (uint8_t)LIMIT(tmp, 16, 1);
+		break;
+	}
+
+	char str[17] = { '\0' };
+	sprintf(str,"LEN  %2d %2d %2d %2d",
+			seq->step_length_array[0],
+			seq->step_length_array[1],
+			seq->step_length_array[2],
+			seq->step_length_array[3]
+			);
+	lcdWriteText(0, "STEP  A  B  C  D", 16);
+	lcdWriteText(1, str, 16);
+}
+
 void ShowProgramMenu(int add) {
 
 	LcdMenuState = LCD_STATE_PROGRAM_MENU;
 
 	ProgramMenuSelectedItemIndex += add;
-	if (ProgramMenuSelectedItemIndex > 2) {
+	if (ProgramMenuSelectedItemIndex > 3) {
 		ProgramMenuSelectedItemIndex = 0;
 	} else if (ProgramMenuSelectedItemIndex < 0) {
-		ProgramMenuSelectedItemIndex = 2;
+		ProgramMenuSelectedItemIndex = 3;
 	}
 
 	switch (ProgramMenuSelectedItemIndex) {
@@ -290,10 +310,19 @@ void ShowProgramMenu(int add) {
 		break;
 	case 2:
 		lcdWriteText(0, "~Load  Program  ", 16);
-		lcdWriteText(1, "                ", 16);
+		lcdWriteText(1, " Revert         ", 16);
+		break;
+	case 3:
+		lcdWriteText(0, " Load  Program  ", 16);
+		lcdWriteText(1, "~Revert         ", 16);
 		break;
 	}
 
+}
+
+void showConfirmRevert() {
+		lcdWriteText(0, "Revert?         ", 16);
+		lcdWriteText(1, "N:EXIT  Y:ENTER ", 16);
 }
 
 void MIDIConfig_SyncMode(MidiConfig* config){

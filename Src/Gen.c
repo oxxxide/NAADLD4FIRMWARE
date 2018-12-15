@@ -441,14 +441,12 @@ int Gen_get_filter_type(Gen* gen) {
 	return gen->filter.filter_type;
 }
 
-//Filter Envelope
-// -64 <= v >= +64
 void Gen_set_filter_amount(Gen* gen, int v) {
-	if (v < 0) {
-		gen->filter_amount = (1.0f / ((-v) / 12.7f)) + 1.0f;
-	} else {
-		gen->filter_amount = (v / 12.7f) + 1.0f;
-	}
+
+	v = LIMIT(v,127,0);
+
+	//ACCENT
+	gen->decay_filter.i_amount = LIMIT(v, 127, 0);
 }
 
 void Gen_set_filter_decay(Gen* gen, int v){

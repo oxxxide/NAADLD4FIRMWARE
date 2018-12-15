@@ -172,7 +172,7 @@
 
 #define LIMIT(v,max,min)( (v)>(max) ? (max) : ( (v)<(min) ? (min):(v) ) )
 
-extern volatile uint8_t LcdMenuState;
+//extern volatile LCD_STATE LcdMenuState;
 
 extern uint16_t adcResult1;
 extern uint16_t adcResult2;
