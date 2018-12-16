@@ -868,6 +868,11 @@ void onChangeRE_A(int id, int add) {
 		return;
 	}
 
+	if (LcdMenuState == LCD_STATE_SEQ_BEAT_REPEAT) {
+		showSequencerBeatRepeatConfig(&sequencer, 0, add);
+		return;
+	}
+
 	if (LcdMenuState != LCD_STATE_DEFAULT) {
 		return;
 	}
@@ -948,6 +953,11 @@ void onChangeRE_B(int id, int add) {
 		return;
 	}
 
+	if (LcdMenuState == LCD_STATE_SEQ_BEAT_REPEAT) {
+		showSequencerBeatRepeatConfig(&sequencer, 1, add);
+		return;
+	}
+
 	if (LcdMenuState != LCD_STATE_DEFAULT) {
 		return;
 	}
@@ -1020,6 +1030,11 @@ void onChangeRE_C(int id, int add) {
 
 	if (LcdMenuState == LCD_STATE_MIDI_RECEIVE_CONFIG) {
 		MIDIConfig_ChangeCh(&midiConfig, add >= 0 ? 1 : -1);
+		return;
+	}
+
+	if (LcdMenuState == LCD_STATE_SEQ_BEAT_REPEAT) {
+		showSequencerBeatRepeatConfig(&sequencer, 2, add);
 		return;
 	}
 
@@ -1121,6 +1136,11 @@ void onChangeRE_D(int id, int add) {
 
 	if (LcdMenuState == LCD_STATE_SEQ_STEP_CFG) {
 		showSequencerStepConfig(&sequencer, 3, add);
+		return;
+	}
+
+	if (LcdMenuState == LCD_STATE_SEQ_BEAT_REPEAT) {
+		showSequencerBeatRepeatConfig(&sequencer, 3, add);
 		return;
 	}
 
@@ -1290,6 +1310,11 @@ void ON_PUSH_MENU(void) {
 	}
 
 	if (LcdMenuState == LCD_STATE_SEQ_STEP_CFG) {
+		showSequencerBeatRepeatConfig(&sequencer,-1,0);
+		return;
+	}
+
+	if (LcdMenuState == LCD_STATE_SEQ_BEAT_REPEAT) {
 		ShowSequencerEditMode(&sequencer, 0);
 		return;
 	}
@@ -1309,7 +1334,7 @@ void ON_PUSH_MENU(void) {
 		return;
 	}
 
-	if (LcdMenuState == LCD_STATE_DEFAULT) {
+	if (LcdMenuState == LCD_STATE_DEFAULT || LcdMenuState == LCD_STATE_PROGRAM_MENU) {
 		lightsOff();
 		SelectMenu(0);
 		LcdMenuState = LCD_STATE_MENU;
@@ -1345,7 +1370,7 @@ void ON_PUSH_EXIT(void) {
 		return;
 	}
 
-	if (LcdMenuState == LCD_STATE_MONITOR_CV || LcdMenuState == LCD_STATE_SEQ_EDIT  || LcdMenuState == LCD_STATE_SEQ_STEP_CFG) {
+	if (LcdMenuState == LCD_STATE_MONITOR_CV || LcdMenuState == LCD_STATE_SEQ_EDIT  || LcdMenuState == LCD_STATE_SEQ_STEP_CFG || LcdMenuState == LCD_STATE_SEQ_BEAT_REPEAT) {
 		LcdMenuState = LCD_STATE_MENU;
 		SelectMenu(0);
 		return;
@@ -1410,7 +1435,8 @@ void ON_PUSH_ENTER(void) {
 	}
 
 	if (LcdMenuState == LCD_STATE_SEQ_EDIT
-			|| LcdMenuState == LCD_STATE_SEQ_STEP_CFG) {
+			|| LcdMenuState == LCD_STATE_SEQ_STEP_CFG
+			|| LcdMenuState == LCD_STATE_SEQ_BEAT_REPEAT) {
 		if (sequencer.status == SEQ_IDLING) {
 			StartSequencer(&sequencer);
 		} else {
@@ -1461,6 +1487,7 @@ void ON_PUSH_ENTER(void) {
 
 			LcdMenuState = LCD_STATE_DEFAULT;
 			refreshLCD();
+			updateLed();
 		}
 			return;
 		case ITEM_INDEX_STORE:
@@ -1481,6 +1508,7 @@ void ON_PUSH_ENTER(void) {
 	if(LcdMenuState == LCD_STATE_CONFIRM_REVERT){
 		revert();
 		LcdMenuState = LCD_STATE_DEFAULT;
+		updateLed();
 		refreshLCD();
 		return;
 	}
@@ -1529,6 +1557,7 @@ void ON_PUSH_ENTER(void) {
 			pNo = tartgetProgramNo;
 			LcdMenuState = LCD_STATE_DEFAULT;
 			refreshLCD();
+			updateLed();
 			break;
 
 		case HAL_ERROR:
@@ -1563,7 +1592,7 @@ static void updateSelectProgram() {
 }
 
 void ON_PUSH_PROGRAM(void) {
-	if(LcdMenuState == LCD_STATE_DEFAULT){
+	if(LcdMenuState == LCD_STATE_DEFAULT || LcdMenuState == LCD_STATE_MENU){
 		lightsOff();
 		ShowProgramMenu(0);
 		return;
@@ -2324,25 +2353,34 @@ void SEQUENCER_BEAT_CALLBACK(uint8_t * step_array){
 	n = &(sequencer.sequenceData[step]);
 	if (n->a) {
 		Gen_trig(&synth[0], 1.0f);
+
+		OnBeatRdmzer(&sequencer, 0);
 	}
 
 	step = sequencer.step[1];
 	n = &(sequencer.sequenceData[step]);
 	if (n->b) {
 		Gen_trig(&synth[1], 1.0f);
+
+		OnBeatRdmzer(&sequencer, 1);
 	}
 
 	step = sequencer.step[2];
 	n = &(sequencer.sequenceData[step]);
 	if (n->c) {
 		Gen_trig(&synth[2], 1.0f);
+
+		OnBeatRdmzer(&sequencer, 2);
 	}
 
 	step = sequencer.step[3];
 	n = &(sequencer.sequenceData[step]);
 	if (n->d) {
 		Gen_trig(&synth[3], 1.0f);
+
+		OnBeatRdmzer(&sequencer, 3);
 	}
+
 }
 
 

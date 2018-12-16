@@ -288,6 +288,24 @@ void showSequencerStepConfig(Sequencer* seq, int knob, int add) {
 	lcdWriteText(1, str, 16);
 }
 
+void showSequencerBeatRepeatConfig(Sequencer* seq, int knob, int add) {
+
+	LcdMenuState = LCD_STATE_SEQ_BEAT_REPEAT;
+
+	if (knob >= 0) {
+		seq->playfx[knob].chance = (uint8_t) LIMIT(
+				seq->playfx[knob].chance + add, 7, 0);
+	}
+	char str[17] = { '\0' };
+	sprintf(str, "Repeat %1d %1d %1d %1d  ",
+			seq->playfx[0].chance,
+			seq->playfx[1].chance,
+			seq->playfx[2].chance,
+			seq->playfx[3].chance);
+	lcdWriteText(0, "Beat   A B C D  ", 16);
+	lcdWriteText(1, str, 16);
+}
+
 void ShowProgramMenu(int add) {
 
 	LcdMenuState = LCD_STATE_PROGRAM_MENU;

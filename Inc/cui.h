@@ -12,22 +12,6 @@
 #include "MidiConfig.h"
 #include "Sequencer.h"
 
-/*
-#define LCD_STATE_DEFAULT 0
-#define LCD_STATE_MENU 1
-#define LCD_STATE_SYNC 4
-#define LCD_STATE_VELC 5
-#define LCD_STATE_LOAD_PROGRAM 6
-#define LCD_STATE_SAVE_PROGRAM 7
-#define LCD_STATE_MONITOR_CV 8
-#define LCD_STATE_FACTORY_RESET_CONFIRM 9
-#define LCD_STATE_MIDI_RECEIVE_CONFIG 10
-#define LCD_STATE_PROGRAM_MENU 11
-#define LCD_STATE_ECHOBACK 12
-#define LCD_STATE_SEQ_EDIT 13
-#define LCD_STATE_CONFIRM_REVERT 14
-#define LCD_STATE_SEQ_STEP_CFG 15
-*/
 typedef enum {
 	LCD_STATE_DEFAULT = 0,
 	LCD_STATE_MENU = 1,
@@ -42,7 +26,8 @@ typedef enum {
 	LCD_STATE_ECHOBACK = 12,
 	LCD_STATE_SEQ_EDIT = 13,
 	LCD_STATE_CONFIRM_REVERT = 14,
-	LCD_STATE_SEQ_STEP_CFG = 15
+	LCD_STATE_SEQ_STEP_CFG = 15,
+	LCD_STATE_SEQ_BEAT_REPEAT = 16,
 } LCD_STATE;
 
 typedef enum {
@@ -122,9 +107,9 @@ void ShowProgramMenu(int add);
 void showConfirmRevert(void);
 void CV_Monitor_Show(void);
 
-//void ShowSequencerTop(Sequencer* seq, int add);
 void ShowSequencerEditMode(Sequencer* seq, int moveStep);
 void showSequencerStepConfig(Sequencer* seq, int konb, int add);
+void showSequencerBeatRepeatConfig(Sequencer* seq, int knob, int add);
 
 void ConfirmFactoryReset(void);
 

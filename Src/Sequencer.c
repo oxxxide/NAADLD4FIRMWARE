@@ -6,8 +6,13 @@
  */
 
 #include "Sequencer.h"
+#include "Noise.h"
+#include "processing.h"
+#include "Gen.h"
 
 #define TICK_PER_STEP 6
+
+extern Gen synth[NUM_OF_VOICES];
 
 void StartSequencer(Sequencer* seq){
 	seq->clock_cnt = 0;
@@ -44,6 +49,7 @@ void ClockSequencer(Sequencer* seq) {
 	ON_PROGRESS_SEQUENCER_CLOCK();
 	if (seq->status == SEQ_RUNNING && seq->clock_cnt <= 0) {
 		SEQUENCER_BEAT_CALLBACK(seq->step);
+
 		for(int i=0;i<4;i++){
 			seq->step[i]++;
 			seq->clock_cnt = TICK_PER_STEP;
@@ -53,6 +59,12 @@ void ClockSequencer(Sequencer* seq) {
 		}
 
 	}
+
+	tickPlayFx(seq,0);
+	tickPlayFx(seq,1);
+	tickPlayFx(seq,2);
+	tickPlayFx(seq,3);
+
 	seq->clock_cnt--;
 }
 
@@ -71,6 +83,85 @@ void InitSequencer(Sequencer* seq){
 	seq->cursor_index = 0;
 	memset( seq->sequenceData, 0,  (16 * sizeof(Notes)));
 	SetBPM(seq, 120);
+
+	for(int i=0;i<4;i++){
+		seq->playfx[i].chance = 2;
+		seq->playfx[i].mute = 1;
+		seq->playfx[i].decay = 8;
+
+		seq->pfx_status[i].decay_cof = 0;
+		seq->pfx_status[i].gate = 0;
+		seq->pfx_status[i].rpt_clk = 3;
+		seq->pfx_status[i].rpt_cnt = 3;
+		seq->pfx_status[i].total_cnt = 12;
+		seq->pfx_status[i].total_clk = 12;
+	}
+}
+
+void OnBeatRdmzer(Sequencer* seq, int index){
+
+	PlayFxStatus* status = &seq->pfx_status[index];
+
+	if(status->gate == 0 ){
+
+
+		PlayFx* param = &seq->playfx[index];
+
+		uint32_t cnc = Noise_Generate_uint() & 7;
+		if(cnc < param->chance){
+
+			status->gate = 1;
+
+			uint32_t rdm_totalLength = Noise_Generate_uint() & 7;
+			if (rdm_totalLength >= 7) {
+				status->total_cnt = 12;
+				status->total_clk = 12;
+			} else if (rdm_totalLength >= 5) {
+				status->total_cnt = 12;
+				status->total_clk = 12;
+			} else if (rdm_totalLength >= 4) {
+				status->total_cnt = 9;
+				status->total_clk = 9;
+			} else {
+				status->total_cnt = 6;
+				status->total_clk = 6;
+			}
+
+			uint32_t rdm_grainLength = Noise_Generate_uint() & 7;
+			if(rdm_grainLength >= 7){
+				status->rpt_clk = 4;
+				status->rpt_cnt = 4;
+			}else if(rdm_grainLength >= 5){
+				status->rpt_clk = 3;
+				status->rpt_cnt = 3;
+			}else if(rdm_grainLength >= 1){
+				status->rpt_clk = 2;
+				status->rpt_cnt = 2;
+			}else{
+				status->rpt_clk = 1;
+				status->rpt_cnt = 1;
+			}
+
+		}
+
+	}
+}
+
+void tickPlayFx(Sequencer* seq, int index) {
+	PlayFxStatus* status = &seq->pfx_status[index];
+	if (status->gate > 0) {
+		status->total_cnt--;
+		status->rpt_cnt--;
+
+		if(status->rpt_cnt == 0){
+			Gen_trig(&synth[index],1.0f);
+			status->rpt_cnt = status->rpt_clk;
+		}
+
+		if (status->total_cnt == 0) {
+			status->gate = 0;
+		}
+	}
 }
 
 __attribute__((weak)) void ON_PROGRESS_SEQUENCER_CLOCK() {
