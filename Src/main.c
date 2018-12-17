@@ -2423,6 +2423,12 @@ void ON_RECEIVE_STOP() {
 	}
 }
 
+void ON_RECEIVE_CONTINUE() {
+	if (midiConfig.syncMode == ExternalClock&& sequencer.status == SEQ_IDLING) {
+		StartSequencer(&sequencer);
+	}
+}
+
 /* USER CODE END 4 */
 
 /* StartDefaultTask function */

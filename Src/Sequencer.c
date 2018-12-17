@@ -85,9 +85,11 @@ void InitSequencer(Sequencer* seq){
 	SetBPM(seq, 120);
 
 	for(int i=0;i<4;i++){
-		seq->playfx[i].chance = 2;
-		seq->playfx[i].mute = 1;
-		seq->playfx[i].decay = 8;
+		seq->playfx[i].chance = 0;
+		seq->playfx[i].mute = 0;
+		seq->playfx[i].decay = 0;
+		seq->playfx[i].grain = 0;
+		seq->playfx[i].hold_time = 0;
 
 		seq->pfx_status[i].decay_cof = 0;
 		seq->pfx_status[i].gate = 0;

@@ -292,6 +292,12 @@ void showSequencerBeatRepeatConfig(Sequencer* seq, int knob, int add) {
 
 	LcdMenuState = LCD_STATE_SEQ_BEAT_REPEAT;
 
+	if (add > 0) {
+		add = 1;
+	} else if (add < 0) {
+		add = -1;
+	}
+
 	if (knob >= 0) {
 		seq->playfx[knob].chance = (uint8_t) LIMIT(
 				seq->playfx[knob].chance + add, 7, 0);

@@ -44,6 +44,10 @@ void parseSignal(uint8_t b) {
 			//START
 			ON_RECEIVE_START();
 		}
+		if (b == 0xFB) {
+			//START
+			ON_RECEIVE_CONTINUE();
+		}
 		if (b == 0xFC) {
 			//STOP
 			ON_RECEIVE_STOP();
