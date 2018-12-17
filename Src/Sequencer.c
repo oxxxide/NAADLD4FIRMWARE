@@ -81,6 +81,7 @@ void InitSequencer(Sequencer* seq){
 	seq->bpm = 120;
 	seq->status = SEQ_IDLING;
 	seq->cursor_index = 0;
+	seq->playFxEnabled = 0;
 	memset( seq->sequenceData, 0,  (16 * sizeof(Notes)));
 	SetBPM(seq, 120);
 
@@ -101,6 +102,10 @@ void InitSequencer(Sequencer* seq){
 }
 
 void OnBeatRdmzer(Sequencer* seq, int index){
+
+	if(!seq->playFxEnabled){
+		return;
+	}
 
 	PlayFxStatus* status = &seq->pfx_status[index];
 

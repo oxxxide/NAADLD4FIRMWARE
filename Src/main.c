@@ -1230,6 +1230,11 @@ void onChangeRE_E(int id, int add) {
 		return;
 	}
 
+	if (LcdMenuState == LCD_STATE_SEQ_BEAT_REPEAT) {
+		showSequencerBeatRepeatConfig(&sequencer, 4, add);
+		return;
+	}
+
 	if (LcdMenuState == LCD_STATE_SYNC) {
 		if (midiConfig.syncMode == InternalClock) {
 			midiConfig.syncMode = ExternalClock;
@@ -1257,13 +1262,6 @@ void onChangeRE_E(int id, int add) {
 		ShowProgramMenu(add >= 0 ? 1 : -1);
 		return;
 	}
-
-	if (LcdMenuState == LCD_STATE_SYNC) {
-		//SyncConfig_ChangeSync();
-		return;
-	}
-
-
 
 	if (LcdMenuState == LCD_STATE_LOAD_PROGRAM) {
 		tartgetProgramNo += add;
@@ -2353,7 +2351,6 @@ void SEQUENCER_BEAT_CALLBACK(uint8_t * step_array){
 	n = &(sequencer.sequenceData[step]);
 	if (n->a) {
 		Gen_trig(&synth[0], 1.0f);
-
 		OnBeatRdmzer(&sequencer, 0);
 	}
 

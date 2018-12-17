@@ -47,6 +47,7 @@ typedef struct {
 	Notes sequenceData[16];
 	SequencerStatus status;
 	int8_t cursor_index;
+	uint8_t playFxEnabled;
 	PlayFx playfx[4];
 	PlayFxStatus pfx_status[4];
 } Sequencer;
