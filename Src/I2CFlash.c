@@ -79,7 +79,7 @@ HAL_StatusTypeDef I2CFlash_SaveSequenceData(I2C_EEPROM* instance,
 		return ret;
 	}
 	ret = I2CFlash_Write(instance, ROM_ADDRESS_SEQUENCE_PLAYFX_ENABLED,
-			(uint8_t*) seq->playFxEnabled, 1);
+			&seq->playFxEnabled, 1);
 	if (ret != HAL_OK) {
 		return ret;
 	}

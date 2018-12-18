@@ -309,8 +309,8 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-  RCC_OscInitStruct.PLL.PLLM = 4;
-  RCC_OscInitStruct.PLL.PLLN = 168;
+  RCC_OscInitStruct.PLL.PLLM = 8;
+  RCC_OscInitStruct.PLL.PLLN = 336;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
   RCC_OscInitStruct.PLL.PLLQ = 7;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
@@ -333,7 +333,7 @@ void SystemClock_Config(void)
   }
 
   PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_I2S;
-  PeriphClkInitStruct.PLLI2S.PLLI2SN = 86;
+  PeriphClkInitStruct.PLLI2S.PLLI2SN = 172;
   PeriphClkInitStruct.PLLI2S.PLLI2SR = 2;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
   {
