@@ -48,6 +48,7 @@ uint8_t triggerThreshold = 0;
 
 void SelectMenu(int add) {
 	int tmp = LcdMenuSelectedItemIndex;
+	const int LastIndex = 7;
 	if (add > 0) {
 		tmp++;
 	} else if (add < 0) {
@@ -55,8 +56,8 @@ void SelectMenu(int add) {
 	}
 
 	if (tmp < 0) {
-		tmp = 6;
-	} else if (tmp > 6) {
+		tmp = LastIndex;
+	} else if (tmp > LastIndex) {
 		tmp = 0;
 	}
 
@@ -87,40 +88,15 @@ void SelectMenu(int add) {
 		lcdWriteText(0," CV Monitor     ",16);
 		lcdWriteText(1,"~EchoBack       ",16);
 		break;
-	case ITEM_INDEX_FACTORY_RESET:
-		lcdWriteText(0,"~Factory Reset  ",16);
-		lcdWriteText(1,"                ",16);
-		break;
-	}
-
-
-	/*
-	switch (LcdMenuSelectedItemIndex) {
-	case 0:
-		lcdWriteText(0,"~SEQ    SYNC    ",16);
-		lcdWriteText(1," MIDI   VELC    ",16);
-		break;
-	case 1:
-		lcdWriteText(0," SEQ   ~SYNC    ",16);
-		lcdWriteText(1," MIDI   VELC    ",16);
-		break;
-	case 2:
-		lcdWriteText(0," SEQ    SYNC    ",16);
-		lcdWriteText(1,"~MIDI   VELC    ",16);
-		break;
-	case 3:
-		lcdWriteText(0," SEQ    SYNC    ",16);
-		lcdWriteText(1," MIDI  ~VELC    ",16);
-		break;
-	case 4:
-		lcdWriteText(0,"~CV Monitor     ",16);
+	case ITEM_INDEX_SYSTEM_INFO:
+		lcdWriteText(0,"~System Info    ",16);
 		lcdWriteText(1," Factory Reset  ",16);
 		break;
-	case 5:
-		lcdWriteText(0," CV Monitor     ",16);
+	case ITEM_INDEX_FACTORY_RESET:
+		lcdWriteText(0," System Info    ",16);
 		lcdWriteText(1,"~Factory Reset  ",16);
 		break;
-	}*/
+	}
 }
 
 void MIDIConfig_Show(MidiConfig* midiConfig) {
@@ -221,7 +197,7 @@ void MIDIConfig_VelocityCurve(MidiConfig* midiConfig, int add) {
 	}
 }
 
-void ShowSequencerEditMode(Sequencer* seq, int moveStep){
+void ShowSequencerEditMode(Sequencer* seq, int moveStep, SyncMode syncMode) {
 	LcdMenuState = LCD_STATE_SEQ_EDIT;
 	char str[17] = { '\0' };
 	if (moveStep != 0) {
@@ -234,7 +210,11 @@ void ShowSequencerEditMode(Sequencer* seq, int moveStep){
 	}
 
 	//1st Line
-	sprintf(str, "STEP:%02d  BPM:%03d", seq->cursor_index + 1, seq->bpm);
+	if(syncMode == ExternalClock){
+		sprintf(str, "STEP:%02d  BPM:Ext", seq->cursor_index + 1);
+	}else{
+		sprintf(str, "STEP:%02d  BPM:%03d", seq->cursor_index + 1, seq->bpm);
+	}
 	lcdWriteText(0, str, 16);
 
 	//2nd Line
@@ -288,6 +268,34 @@ void showSequencerStepConfig(Sequencer* seq, int knob, int add) {
 	lcdWriteText(1, str, 16);
 }
 
+void showSequencerBeatRepeatConfig(Sequencer* seq, int knob, int add) {
+	LcdMenuState = LCD_STATE_SEQ_BEAT_REPEAT;
+
+	if (add > 0) {
+		add = 1;
+	} else if (add < 0) {
+		add = -1;
+	}
+
+	if (knob >= 0) {
+		if(knob==4){ //ENTRY KNOB
+			seq->playFxEnabled = LIMIT( ((int)seq->playFxEnabled) + add, 1, 0);
+		}else{
+			seq->playfx[knob].chance = (uint8_t) LIMIT(
+					seq->playfx[knob].chance + add, 7, 0);
+		}
+	}
+	char str[17] = { '\0' };
+	sprintf(str, "%s      %1d %1d %1d %1d",
+			seq->playFxEnabled ? "ON ":"OFF",
+			seq->playfx[0].chance,
+			seq->playfx[1].chance,
+			seq->playfx[2].chance,
+			seq->playfx[3].chance);
+	lcdWriteText(0, "BeatRpt  A B C D", 16);
+	lcdWriteText(1, str, 16);
+}
+
 void ShowProgramMenu(int add) {
 
 	LcdMenuState = LCD_STATE_PROGRAM_MENU;
@@ -323,6 +331,12 @@ void ShowProgramMenu(int add) {
 void showConfirmRevert() {
 		lcdWriteText(0, "Revert?         ", 16);
 		lcdWriteText(1, "N:EXIT  Y:ENTER ", 16);
+}
+
+void showSystemVersion() {
+	LcdMenuState = LCD_STATE_SYSTEM_INFO;
+	lcdWriteText(0, "NAAD LD4        ", 16);
+	lcdWriteText(1, FIRMWARE_VERSION, 16);
 }
 
 void MIDIConfig_SyncMode(MidiConfig* config){

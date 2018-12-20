@@ -28,7 +28,6 @@ void parseSignal(uint8_t b) {
 	static uint8_t rawBytes[3];
 
 	if (status & 0b1000) {
-
 		//Status Byte
 		if (counter >= 1) {
 			counter = 0;
@@ -36,21 +35,23 @@ void parseSignal(uint8_t b) {
 			parseSignal(b);
 			return;
 		}
-		if (b == 0xF8) {
-			//MIDI Timing Clock
+		switch (b) {
+		case 0xF8:
 			ON_RECEIVE_CLOCK();
-		}
-		if (b == 0xFA) {
-			//START
+			break;
+		case 0xFA:
 			ON_RECEIVE_START();
-		}
-		if (b == 0xFC) {
-			//STOP
+			break;
+		case 0xFB:
+			ON_RECEIVE_CONTINUE();
+			break;
+		case 0xFC:
 			ON_RECEIVE_STOP();
+			break;
 		}
 	} else {
 		//Data Byte
-		if (counter == 0) {
+		if (!counter) {
 			if ((firstByte >> 4) == 0xF) {
 				//ignore system message
 				return;

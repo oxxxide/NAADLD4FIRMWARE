@@ -309,8 +309,8 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-  RCC_OscInitStruct.PLL.PLLM = 4;
-  RCC_OscInitStruct.PLL.PLLN = 168;
+  RCC_OscInitStruct.PLL.PLLM = 8;
+  RCC_OscInitStruct.PLL.PLLN = 336;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
   RCC_OscInitStruct.PLL.PLLQ = 7;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
@@ -333,7 +333,7 @@ void SystemClock_Config(void)
   }
 
   PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_I2S;
-  PeriphClkInitStruct.PLLI2S.PLLI2SN = 86;
+  PeriphClkInitStruct.PLLI2S.PLLI2SN = 172;
   PeriphClkInitStruct.PLLI2S.PLLI2SR = 2;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
   {
@@ -868,6 +868,11 @@ void onChangeRE_A(int id, int add) {
 		return;
 	}
 
+	if (LcdMenuState == LCD_STATE_SEQ_BEAT_REPEAT) {
+		showSequencerBeatRepeatConfig(&sequencer, 0, add);
+		return;
+	}
+
 	if (LcdMenuState != LCD_STATE_DEFAULT) {
 		return;
 	}
@@ -948,6 +953,11 @@ void onChangeRE_B(int id, int add) {
 		return;
 	}
 
+	if (LcdMenuState == LCD_STATE_SEQ_BEAT_REPEAT) {
+		showSequencerBeatRepeatConfig(&sequencer, 1, add);
+		return;
+	}
+
 	if (LcdMenuState != LCD_STATE_DEFAULT) {
 		return;
 	}
@@ -1020,6 +1030,11 @@ void onChangeRE_C(int id, int add) {
 
 	if (LcdMenuState == LCD_STATE_MIDI_RECEIVE_CONFIG) {
 		MIDIConfig_ChangeCh(&midiConfig, add >= 0 ? 1 : -1);
+		return;
+	}
+
+	if (LcdMenuState == LCD_STATE_SEQ_BEAT_REPEAT) {
+		showSequencerBeatRepeatConfig(&sequencer, 2, add);
 		return;
 	}
 
@@ -1124,6 +1139,11 @@ void onChangeRE_D(int id, int add) {
 		return;
 	}
 
+	if (LcdMenuState == LCD_STATE_SEQ_BEAT_REPEAT) {
+		showSequencerBeatRepeatConfig(&sequencer, 3, add);
+		return;
+	}
+
 	if (LcdMenuState != LCD_STATE_DEFAULT) {
 		return;
 	}
@@ -1203,10 +1223,15 @@ void onChangeRE_E(int id, int add) {
 	if(LcdMenuState == LCD_STATE_SEQ_EDIT){
 		if (is_pressed_key_SHIFT) {
 			ChangeBPM(&sequencer, add);
-			ShowSequencerEditMode(&sequencer, 0);
+			ShowSequencerEditMode(&sequencer, 0, midiConfig.syncMode);
 		} else {
-			ShowSequencerEditMode(&sequencer, add);
+			ShowSequencerEditMode(&sequencer, add, midiConfig.syncMode);
 		}
+		return;
+	}
+
+	if (LcdMenuState == LCD_STATE_SEQ_BEAT_REPEAT) {
+		showSequencerBeatRepeatConfig(&sequencer, 4, add);
 		return;
 	}
 
@@ -1237,13 +1262,6 @@ void onChangeRE_E(int id, int add) {
 		ShowProgramMenu(add >= 0 ? 1 : -1);
 		return;
 	}
-
-	if (LcdMenuState == LCD_STATE_SYNC) {
-		//SyncConfig_ChangeSync();
-		return;
-	}
-
-
 
 	if (LcdMenuState == LCD_STATE_LOAD_PROGRAM) {
 		tartgetProgramNo += add;
@@ -1290,7 +1308,12 @@ void ON_PUSH_MENU(void) {
 	}
 
 	if (LcdMenuState == LCD_STATE_SEQ_STEP_CFG) {
-		ShowSequencerEditMode(&sequencer, 0);
+		showSequencerBeatRepeatConfig(&sequencer,-1,0);
+		return;
+	}
+
+	if (LcdMenuState == LCD_STATE_SEQ_BEAT_REPEAT) {
+		ShowSequencerEditMode(&sequencer, 0, midiConfig.syncMode);
 		return;
 	}
 
@@ -1309,7 +1332,7 @@ void ON_PUSH_MENU(void) {
 		return;
 	}
 
-	if (LcdMenuState == LCD_STATE_DEFAULT) {
+	if (LcdMenuState == LCD_STATE_DEFAULT || LcdMenuState == LCD_STATE_PROGRAM_MENU) {
 		lightsOff();
 		SelectMenu(0);
 		LcdMenuState = LCD_STATE_MENU;
@@ -1345,7 +1368,11 @@ void ON_PUSH_EXIT(void) {
 		return;
 	}
 
-	if (LcdMenuState == LCD_STATE_MONITOR_CV || LcdMenuState == LCD_STATE_SEQ_EDIT  || LcdMenuState == LCD_STATE_SEQ_STEP_CFG) {
+	if (LcdMenuState == LCD_STATE_MONITOR_CV
+			|| LcdMenuState == LCD_STATE_SYSTEM_INFO
+			|| LcdMenuState == LCD_STATE_SEQ_EDIT
+			|| LcdMenuState == LCD_STATE_SEQ_STEP_CFG
+			|| LcdMenuState == LCD_STATE_SEQ_BEAT_REPEAT) {
 		LcdMenuState = LCD_STATE_MENU;
 		SelectMenu(0);
 		return;
@@ -1380,7 +1407,7 @@ void ON_PUSH_ENTER(void) {
 		switch (LcdMenuSelectedItemIndex) {
 		case ITEM_INDEX_SEQUENCER:
 			LcdMenuState = LCD_STATE_SEQ_EDIT;
-			ShowSequencerEditMode(&sequencer,0);
+			ShowSequencerEditMode(&sequencer,0, midiConfig.syncMode);
 			return;
 		case ITEM_INDEX_MIDI_MAPPING:
 			LcdMenuState = LCD_STATE_MIDI_RECEIVE_CONFIG;
@@ -1402,6 +1429,9 @@ void ON_PUSH_ENTER(void) {
 			LcdMenuState = LCD_STATE_ECHOBACK;
 			MIDIConfig_EchoBack(&midiConfig);
 			break;
+		case ITEM_INDEX_SYSTEM_INFO:
+			showSystemVersion();
+			break;
 		case ITEM_INDEX_FACTORY_RESET:
 			LcdMenuState = LCD_STATE_FACTORY_RESET_CONFIRM;
 			ConfirmFactoryReset();
@@ -1410,7 +1440,8 @@ void ON_PUSH_ENTER(void) {
 	}
 
 	if (LcdMenuState == LCD_STATE_SEQ_EDIT
-			|| LcdMenuState == LCD_STATE_SEQ_STEP_CFG) {
+			|| LcdMenuState == LCD_STATE_SEQ_STEP_CFG
+			|| LcdMenuState == LCD_STATE_SEQ_BEAT_REPEAT) {
 		if (sequencer.status == SEQ_IDLING) {
 			StartSequencer(&sequencer);
 		} else {
@@ -1461,6 +1492,7 @@ void ON_PUSH_ENTER(void) {
 
 			LcdMenuState = LCD_STATE_DEFAULT;
 			refreshLCD();
+			updateLed();
 		}
 			return;
 		case ITEM_INDEX_STORE:
@@ -1481,6 +1513,7 @@ void ON_PUSH_ENTER(void) {
 	if(LcdMenuState == LCD_STATE_CONFIRM_REVERT){
 		revert();
 		LcdMenuState = LCD_STATE_DEFAULT;
+		updateLed();
 		refreshLCD();
 		return;
 	}
@@ -1529,6 +1562,7 @@ void ON_PUSH_ENTER(void) {
 			pNo = tartgetProgramNo;
 			LcdMenuState = LCD_STATE_DEFAULT;
 			refreshLCD();
+			updateLed();
 			break;
 
 		case HAL_ERROR:
@@ -1563,7 +1597,7 @@ static void updateSelectProgram() {
 }
 
 void ON_PUSH_PROGRAM(void) {
-	if(LcdMenuState == LCD_STATE_DEFAULT){
+	if(LcdMenuState == LCD_STATE_DEFAULT || LcdMenuState == LCD_STATE_MENU){
 		lightsOff();
 		ShowProgramMenu(0);
 		return;
@@ -1597,7 +1631,7 @@ void ON_PUSH_A(void) {
 	if(LcdMenuState == LCD_STATE_SEQ_EDIT){
 		//step rec
 		sequencer.sequenceData[sequencer.cursor_index].a = !sequencer.sequenceData[sequencer.cursor_index].a;
-		ShowSequencerEditMode(&sequencer, 0);
+		ShowSequencerEditMode(&sequencer, 0, midiConfig.syncMode);
 		if (!is_pressed_key_SHIFT) {
 			return;
 		}
@@ -1616,7 +1650,7 @@ void ON_PUSH_B(void) {
 		//step rec
 		sequencer.sequenceData[sequencer.cursor_index].b =
 				!sequencer.sequenceData[sequencer.cursor_index].b;
-		ShowSequencerEditMode(&sequencer, 0);
+		ShowSequencerEditMode(&sequencer, 0, midiConfig.syncMode);
 		if (!is_pressed_key_SHIFT) {
 			return;
 		}
@@ -1635,7 +1669,7 @@ void ON_PUSH_C(void) {
 		//step rec
 		sequencer.sequenceData[sequencer.cursor_index].c =
 				!sequencer.sequenceData[sequencer.cursor_index].c;
-		ShowSequencerEditMode(&sequencer, 0);
+		ShowSequencerEditMode(&sequencer, 0, midiConfig.syncMode);
 		if (!is_pressed_key_SHIFT) {
 			return;
 			}
@@ -1654,7 +1688,7 @@ void ON_PUSH_D(void) {
 		//step rec
 		sequencer.sequenceData[sequencer.cursor_index].d =
 				!sequencer.sequenceData[sequencer.cursor_index].d;
-		ShowSequencerEditMode(&sequencer, 0);
+		ShowSequencerEditMode(&sequencer, 0, midiConfig.syncMode);
 		if (!is_pressed_key_SHIFT) {
 			return;
 		}
@@ -2324,25 +2358,33 @@ void SEQUENCER_BEAT_CALLBACK(uint8_t * step_array){
 	n = &(sequencer.sequenceData[step]);
 	if (n->a) {
 		Gen_trig(&synth[0], 1.0f);
+		OnBeatRdmzer(&sequencer, 0);
 	}
 
 	step = sequencer.step[1];
 	n = &(sequencer.sequenceData[step]);
 	if (n->b) {
 		Gen_trig(&synth[1], 1.0f);
+
+		OnBeatRdmzer(&sequencer, 1);
 	}
 
 	step = sequencer.step[2];
 	n = &(sequencer.sequenceData[step]);
 	if (n->c) {
 		Gen_trig(&synth[2], 1.0f);
+
+		OnBeatRdmzer(&sequencer, 2);
 	}
 
 	step = sequencer.step[3];
 	n = &(sequencer.sequenceData[step]);
 	if (n->d) {
 		Gen_trig(&synth[3], 1.0f);
+
+		OnBeatRdmzer(&sequencer, 3);
 	}
+
 }
 
 
@@ -2382,6 +2424,12 @@ void ON_RECEIVE_START() {
 void ON_RECEIVE_STOP() {
 	if (midiConfig.syncMode == ExternalClock  && sequencer.status == SEQ_RUNNING) {
 		StopSequencer(&sequencer);
+	}
+}
+
+void ON_RECEIVE_CONTINUE() {
+	if (midiConfig.syncMode == ExternalClock&& sequencer.status == SEQ_IDLING) {
+		StartSequencer(&sequencer);
 	}
 }
 

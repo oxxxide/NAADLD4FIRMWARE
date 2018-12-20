@@ -23,6 +23,23 @@ typedef struct {
 } Notes;
 
 typedef struct {
+	uint8_t chance;
+	uint8_t mute;
+	uint8_t decay;
+	uint8_t grain;
+	uint8_t hold_time;
+} PlayFx;
+
+typedef struct {
+	uint8_t gate;
+	uint8_t total_clk;
+	uint8_t rpt_clk;
+	uint8_t total_cnt;
+	uint8_t rpt_cnt;
+	float decay_cof;
+} PlayFxStatus;
+
+typedef struct {
 	int16_t bpm;
 	uint8_t step[4];
 	uint8_t clock_cnt;
@@ -30,6 +47,9 @@ typedef struct {
 	Notes sequenceData[16];
 	SequencerStatus status;
 	int8_t cursor_index;
+	uint8_t playFxEnabled;
+	PlayFx playfx[4];
+	PlayFxStatus pfx_status[4];
 } Sequencer;
 
 void StartSequencer(Sequencer* seq);
@@ -37,6 +57,10 @@ void StartSequencer(Sequencer* seq);
 void StopSequencer(Sequencer* seq);
 
 void ClockSequencer(Sequencer* seq);
+
+
+void OnBeatRdmzer(Sequencer* seq, int index);
+void tickPlayFx(Sequencer* seq, int index);
 
 void InitSequencer(Sequencer* seq);
 

@@ -69,9 +69,28 @@ HAL_StatusTypeDef I2CFlash_SaveSequenceData(I2C_EEPROM* instance,
 	if(ret != HAL_OK){
 			return ret;
 	}
-	ret = I2CFlash_Write(instance, ROM_ADDRESS_SEQUENCE_STEPLENGTH, &seq->step_length_array[0] , 4);
-	if(ret != HAL_OK){
-				return ret;
+	ret = I2CFlash_Write(instance, ROM_ADDRESS_SEQUENCE_STEPLENGTH,
+			&seq->step_length_array[0], 4);
+	if (ret != HAL_OK) {
+		return ret;
+	}
+	ret = waitUntilReady(instance);
+	if (ret != HAL_OK) {
+		return ret;
+	}
+	ret = I2CFlash_Write(instance, ROM_ADDRESS_SEQUENCE_PLAYFX_ENABLED,
+			&seq->playFxEnabled, 1);
+	if (ret != HAL_OK) {
+		return ret;
+	}
+	ret = waitUntilReady(instance);
+	if (ret != HAL_OK) {
+		return ret;
+	}
+	ret = I2CFlash_Write(instance, ROM_ADDRESS_SEQUENCE_BEATREPEAT,
+			(uint8_t*)seq->playfx, sizeof(PlayFx) * 4);
+	if (ret != HAL_OK) {
+		return ret;
 	}
 	ret = waitUntilReady(instance);
 	return ret;
@@ -94,19 +113,16 @@ HAL_StatusTypeDef I2CFlash_LoadSequenceData(I2C_EEPROM* instance,
 	if (ret != HAL_OK) {
 		return ret;
 	}
-
 	ret = I2CFlash_Read(instance, ROM_ADDRESS_SEQUENCE_BPM,
 			(uint8_t*) &seq->bpm, 2);
 	if (ret != HAL_OK) {
 		return ret;
 	}
 	SetBPM(seq, seq->bpm);
-
 	ret = waitUntilReady(instance);
 	if (ret != HAL_OK) {
 		return ret;
 	}
-
 	ret = I2CFlash_Read(instance, ROM_ADDRESS_SEQUENCE_STEPLENGTH,
 			&seq->step_length_array[0], 4);
 	seq->step_length_array[0] = LIMIT(seq->step_length_array[0], 16, 1);
@@ -117,6 +133,28 @@ HAL_StatusTypeDef I2CFlash_LoadSequenceData(I2C_EEPROM* instance,
 		return ret;
 	}
 	ret = waitUntilReady(instance);
+	if (ret != HAL_OK) {
+			return ret;
+	}
+	ret = I2CFlash_Read(instance, ROM_ADDRESS_SEQUENCE_PLAYFX_ENABLED,
+			(uint8_t*)&seq->playFxEnabled, 1);
+	if (ret != HAL_OK) {
+			return ret;
+	}
+	seq->playFxEnabled = seq->playFxEnabled ? 1 : 0;
+	ret = waitUntilReady(instance);
+	if (ret != HAL_OK) {
+			return ret;
+	}
+	ret = I2CFlash_Read(instance, ROM_ADDRESS_SEQUENCE_BEATREPEAT,
+			(uint8_t*)seq->playfx, sizeof(PlayFx) * 4);
+	if (ret != HAL_OK) {
+		return ret;
+	}
+	seq->playfx[0].chance = LIMIT(seq->playfx[0].chance, 7, 0);
+	seq->playfx[1].chance = LIMIT(seq->playfx[1].chance, 7, 0);
+	seq->playfx[2].chance = LIMIT(seq->playfx[2].chance, 7, 0);
+	seq->playfx[3].chance = LIMIT(seq->playfx[3].chance, 7, 0);
 	return ret;
 }
 
