@@ -1223,9 +1223,9 @@ void onChangeRE_E(int id, int add) {
 	if(LcdMenuState == LCD_STATE_SEQ_EDIT){
 		if (is_pressed_key_SHIFT) {
 			ChangeBPM(&sequencer, add);
-			ShowSequencerEditMode(&sequencer, 0);
+			ShowSequencerEditMode(&sequencer, 0, midiConfig.syncMode);
 		} else {
-			ShowSequencerEditMode(&sequencer, add);
+			ShowSequencerEditMode(&sequencer, add, midiConfig.syncMode);
 		}
 		return;
 	}
@@ -1313,7 +1313,7 @@ void ON_PUSH_MENU(void) {
 	}
 
 	if (LcdMenuState == LCD_STATE_SEQ_BEAT_REPEAT) {
-		ShowSequencerEditMode(&sequencer, 0);
+		ShowSequencerEditMode(&sequencer, 0, midiConfig.syncMode);
 		return;
 	}
 
@@ -1368,7 +1368,11 @@ void ON_PUSH_EXIT(void) {
 		return;
 	}
 
-	if (LcdMenuState == LCD_STATE_MONITOR_CV || LcdMenuState == LCD_STATE_SEQ_EDIT  || LcdMenuState == LCD_STATE_SEQ_STEP_CFG || LcdMenuState == LCD_STATE_SEQ_BEAT_REPEAT) {
+	if (LcdMenuState == LCD_STATE_MONITOR_CV
+			|| LcdMenuState == LCD_STATE_SYSTEM_INFO
+			|| LcdMenuState == LCD_STATE_SEQ_EDIT
+			|| LcdMenuState == LCD_STATE_SEQ_STEP_CFG
+			|| LcdMenuState == LCD_STATE_SEQ_BEAT_REPEAT) {
 		LcdMenuState = LCD_STATE_MENU;
 		SelectMenu(0);
 		return;
@@ -1403,7 +1407,7 @@ void ON_PUSH_ENTER(void) {
 		switch (LcdMenuSelectedItemIndex) {
 		case ITEM_INDEX_SEQUENCER:
 			LcdMenuState = LCD_STATE_SEQ_EDIT;
-			ShowSequencerEditMode(&sequencer,0);
+			ShowSequencerEditMode(&sequencer,0, midiConfig.syncMode);
 			return;
 		case ITEM_INDEX_MIDI_MAPPING:
 			LcdMenuState = LCD_STATE_MIDI_RECEIVE_CONFIG;
@@ -1424,6 +1428,9 @@ void ON_PUSH_ENTER(void) {
 		case ITEM_INDEX_ECHO_BACK:
 			LcdMenuState = LCD_STATE_ECHOBACK;
 			MIDIConfig_EchoBack(&midiConfig);
+			break;
+		case ITEM_INDEX_SYSTEM_INFO:
+			showSystemVersion();
 			break;
 		case ITEM_INDEX_FACTORY_RESET:
 			LcdMenuState = LCD_STATE_FACTORY_RESET_CONFIRM;
@@ -1624,7 +1631,7 @@ void ON_PUSH_A(void) {
 	if(LcdMenuState == LCD_STATE_SEQ_EDIT){
 		//step rec
 		sequencer.sequenceData[sequencer.cursor_index].a = !sequencer.sequenceData[sequencer.cursor_index].a;
-		ShowSequencerEditMode(&sequencer, 0);
+		ShowSequencerEditMode(&sequencer, 0, midiConfig.syncMode);
 		if (!is_pressed_key_SHIFT) {
 			return;
 		}
@@ -1643,7 +1650,7 @@ void ON_PUSH_B(void) {
 		//step rec
 		sequencer.sequenceData[sequencer.cursor_index].b =
 				!sequencer.sequenceData[sequencer.cursor_index].b;
-		ShowSequencerEditMode(&sequencer, 0);
+		ShowSequencerEditMode(&sequencer, 0, midiConfig.syncMode);
 		if (!is_pressed_key_SHIFT) {
 			return;
 		}
@@ -1662,7 +1669,7 @@ void ON_PUSH_C(void) {
 		//step rec
 		sequencer.sequenceData[sequencer.cursor_index].c =
 				!sequencer.sequenceData[sequencer.cursor_index].c;
-		ShowSequencerEditMode(&sequencer, 0);
+		ShowSequencerEditMode(&sequencer, 0, midiConfig.syncMode);
 		if (!is_pressed_key_SHIFT) {
 			return;
 			}
@@ -1681,7 +1688,7 @@ void ON_PUSH_D(void) {
 		//step rec
 		sequencer.sequenceData[sequencer.cursor_index].d =
 				!sequencer.sequenceData[sequencer.cursor_index].d;
-		ShowSequencerEditMode(&sequencer, 0);
+		ShowSequencerEditMode(&sequencer, 0, midiConfig.syncMode);
 		if (!is_pressed_key_SHIFT) {
 			return;
 		}

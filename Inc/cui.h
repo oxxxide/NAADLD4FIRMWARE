@@ -28,6 +28,7 @@ typedef enum {
 	LCD_STATE_CONFIRM_REVERT = 14,
 	LCD_STATE_SEQ_STEP_CFG = 15,
 	LCD_STATE_SEQ_BEAT_REPEAT = 16,
+	LCD_STATE_SYSTEM_INFO = 17,
 } LCD_STATE;
 
 typedef enum {
@@ -37,25 +38,14 @@ typedef enum {
 	ITEM_INDEX_VELOCITY_CURVE = 3,
 	ITEM_INDEX_MONITOR_CV = 4,
 	ITEM_INDEX_ECHO_BACK = 5,
-	ITEM_INDEX_FACTORY_RESET = 6
+	ITEM_INDEX_SYSTEM_INFO = 6,
+	ITEM_INDEX_FACTORY_RESET = 7
 } MENU_ITEM;
 
 typedef enum {
 	ITEM_INDEX_TEMPSAVE = 0, ITEM_INDEX_STORE = 1, ITEM_INDEX_LOAD = 2, ITEM_INDEX_REVERT = 3,
 } PROGRAM_MENU_ITEM;
 
-/*
-#define ITEM_INDEX_SEQ 0
-#define ITEM_INDEX_SYNC 1
-#define ITEM_INDEX_MIDI 2
-#define ITEM_INDEX_VELC 3
-#define ITEM_INDEX_MONITOR_CV 4
-#define ITEM_INDEX_FACTORY_RESET 5
-
-#define ITEM_INDEX_TEMPSAVE 0
-#define ITEM_INDEX_STORE 1
-#define ITEM_INDEX_LOAD 2
-*/
 #define MENU_TEXTS_1 " SEQ    SYNC    "
 #define MENU_TEXTS_2 " MIDI   VELC    "
 #define MENU_TEXTS_3 " MONITOR CV-IN  "
@@ -78,7 +68,6 @@ typedef struct {
 	uint8_t clockSource;
 	uint8_t outClock;
 	uint16_t BPM;
-	/*ChannelConfig channel[4];*/
 } MidiSyncConfig;
 
 extern uint8_t LcdMenuSelectedItemIndex;
@@ -105,9 +94,10 @@ void TriggerConfig_Show(void);
 void TriggerConfig_Change(int add);
 void ShowProgramMenu(int add);
 void showConfirmRevert(void);
+void showSystemVersion(void);
 void CV_Monitor_Show(void);
 
-void ShowSequencerEditMode(Sequencer* seq, int moveStep);
+void ShowSequencerEditMode(Sequencer* seq, int moveStep, SyncMode syncMode);
 void showSequencerStepConfig(Sequencer* seq, int konb, int add);
 void showSequencerBeatRepeatConfig(Sequencer* seq, int knob, int add);
 
