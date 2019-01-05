@@ -7,6 +7,11 @@
 
 #include "r_encoder.h"
 
+#define RE_VALRIATION_2 4
+#define RE_VALRIATION_3 8
+#define RE_VALRIATION_4 16
+#define RE_VALRIATION_5 24
+
 volatile uint64_t timestamp = 0;
 Renc encoders[6];
 
@@ -86,8 +91,8 @@ void InitRotaryEncoders() {
 }
 
 int Renc_read(Renc *renc) {
-	uint32_t a = (uint32_t) HAL_GPIO_ReadPin(renc->port1, renc->pin1); //A��
-	uint32_t b = (uint32_t) HAL_GPIO_ReadPin(renc->port2, renc->pin2); //B��
+	uint32_t a = (uint32_t) HAL_GPIO_ReadPin(renc->port1, renc->pin1); //A
+	uint32_t b = (uint32_t) HAL_GPIO_ReadPin(renc->port2, renc->pin2); //B
 	renc->data = (renc->data << 2) | (a << 1) | b;
 	renc->data &= 0xF;
 	int retval = 0;
@@ -95,13 +100,13 @@ int Renc_read(Renc *renc) {
 	case 0b1000: {
 		uint64_t w = timestamp - renc->lastmodified;
 		if (w < 7) {
-			retval = -24;
+			retval = -RE_VALRIATION_5;
 		} else if (w < 15) {
-			retval = -16;
+			retval = -RE_VALRIATION_4;
 		} else if (w < 22) {
-			retval = -8;
+			retval = -RE_VALRIATION_3;
 		} else if (w < 30) {
-			retval = -4;
+			retval = -RE_VALRIATION_2;
 		} else {
 			retval = -1;
 		}
@@ -111,13 +116,13 @@ int Renc_read(Renc *renc) {
 	case 0b1101: {
 		uint64_t w = timestamp - renc->lastmodified;
 		if (w < 7) {
-			retval = 24;
+			retval = RE_VALRIATION_5;
 		} else if (w < 15) {
-			retval = 16;
+			retval = RE_VALRIATION_4;
 		} else if (w < 22) {
-			retval = 8;
+			retval = RE_VALRIATION_3;
 		} else if (w < 30) {
-			retval = 4;
+			retval = RE_VALRIATION_2;
 		} else {
 			retval = 1;
 		}

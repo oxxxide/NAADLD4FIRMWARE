@@ -1,7 +1,8 @@
 /**
   ******************************************************************************
-  * File Name          : freertos.c
-  * Description        : Code for freertos applications
+  * @file           : usb_device.c
+  * @version        : v1.0_Cube
+  * @brief          : This file implements the USB Device
   ******************************************************************************
   * This notice applies to any and all portions of this file
   * that are not between comment pairs USER CODE BEGIN and
@@ -47,29 +48,74 @@
   */
 
 /* Includes ------------------------------------------------------------------*/
-#include "FreeRTOS.h"
-#include "task.h"
 
-/* USER CODE BEGIN Includes */     
+#include "usb_device.h"
+#include "usbd_core.h"
+#include "usbd_desc.h"
+#include "usbd_cdc.h"
+#include "usbd_cdc_if.h"
+
+/* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */
 
-/* Variables -----------------------------------------------------------------*/
+/* USER CODE BEGIN PV */
+/* Private variables ---------------------------------------------------------*/
 
-/* USER CODE BEGIN Variables */
+/* USER CODE END PV */
 
-/* USER CODE END Variables */
+/* USER CODE BEGIN PFP */
+/* Private function prototypes -----------------------------------------------*/
 
-/* Function prototypes -------------------------------------------------------*/
+/* USER CODE END PFP */
 
-/* USER CODE BEGIN FunctionPrototypes */
+/* USB Device Core handle declaration. */
+USBD_HandleTypeDef hUsbDeviceFS;
 
-/* USER CODE END FunctionPrototypes */
+/*
+ * -- Insert your variables declaration here --
+ */
+/* USER CODE BEGIN 0 */
 
-/* Hook prototypes */
+/* USER CODE END 0 */
 
-/* USER CODE BEGIN Application */
-     
-/* USER CODE END Application */
+/*
+ * -- Insert your external function declaration here --
+ */
+/* USER CODE BEGIN 1 */
+
+/* USER CODE END 1 */
+
+/**
+  * Init USB device Library, add supported class and start the library
+  * @retval None
+  */
+void MX_USB_DEVICE_Init(void)
+{
+  /* USER CODE BEGIN USB_DEVICE_Init_PreTreatment */
+  
+  /* USER CODE END USB_DEVICE_Init_PreTreatment */
+  
+  /* Init Device Library, add supported class and start the library. */
+  USBD_Init(&hUsbDeviceFS, &FS_Desc, DEVICE_FS);
+
+  USBD_RegisterClass(&hUsbDeviceFS, &USBD_CDC);
+
+  USBD_CDC_RegisterInterface(&hUsbDeviceFS, &USBD_Interface_fops_FS);
+
+  USBD_Start(&hUsbDeviceFS);
+
+  /* USER CODE BEGIN USB_DEVICE_Init_PostTreatment */
+  
+  /* USER CODE END USB_DEVICE_Init_PostTreatment */
+}
+
+/**
+  * @}
+  */
+
+/**
+  * @}
+  */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

@@ -18,11 +18,11 @@
 #include "main.h"
 
 typedef enum {
-	MODTYPE_FM = 0, MODTYPE_AM = 1
+	MODTYPE_FM = 0, MODTYPE_AM = 1,  MODTYPE_FM_NOISE_ROUTED = 2
 } MOD_TYPE;
 
 
-#define NUMOF_MODTYPE 2
+#define NUMOF_MODTYPE 3
 
 typedef struct {
 	AHR_EG eg_amp;
@@ -78,6 +78,8 @@ void Gen_trig(Gen *gen, float velocity);
 void Gen_init(Gen *gen);
 
 float Gen_process_fm(Gen *gen, float cv);
+
+float Gen_process_fm_plus_noise(Gen *gen, float cv);
 
 float Gen_process_ringmod(Gen *gen, float cv);
 
