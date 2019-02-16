@@ -165,7 +165,7 @@
 #define USE_EXTERNAL_GATE 1
 
 //System Info
-#define FIRMWARE_VERSION "FW Version 1.1  "
+#define FIRMWARE_VERSION "FW Version 1.11 "
 
 #define I2C_LCD_ADDRESS 0x27 /*PCF8574T*/
 //#define I2C_LCD_ADDRESS 0x3F /*PCF8574A*/

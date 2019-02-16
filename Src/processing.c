@@ -62,12 +62,12 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s) {
 }
 
 static FORCE_INLINE void calcCvValue() {
-	if (HAL_GPIO_ReadPin(GPIO_INPUT_ADCSW1_GPIO_Port, GPIO_INPUT_ADCSW1_Pin)
-			== GPIO_PIN_RESET) {
-		cv1 = 1.0f;
-	} else {
+	//if (HAL_GPIO_ReadPin(GPIO_INPUT_ADCSW1_GPIO_Port, GPIO_INPUT_ADCSW1_Pin)
+	//		== GPIO_PIN_RESET) {
+	//	cv1 = 1.0f;
+	//} else {
 		cv1 = cvToExponential(adcResult1 / 2500.0f);
-	}
+	//}
 	if (HAL_GPIO_ReadPin(GPIO_INPUT_ADCSW2_GPIO_Port, GPIO_INPUT_ADCSW2_Pin)
 			== GPIO_PIN_RESET) {
 		cv2 = 1.0f;
