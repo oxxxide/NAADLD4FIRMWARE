@@ -1417,11 +1417,13 @@ void ON_PUSH_EXIT(void) {
 
 void ON_PUSH_ENTER(void) {
 
+	/*
 	if (LcdMenuState == LCD_STATE_DEFAULT && is_pressed_key_SHIFT) {
 		uint16_t mess = (1 << 8) | (uint8_t) SelectedChannel;
 		osMessagePut(queue01Handle, mess, 0);
 		return;
 	}
+	*/
 
 	if (LcdMenuState == LCD_STATE_MENU) {
 		switch (LcdMenuSelectedItemIndex) {
