@@ -6,10 +6,12 @@
  */
 
 #include <string.h>
+#include <stdio.h>
 #include "Gen.h"
 #include "Tone.h"
 #include "processing.h"
 #include "I2CFlash.h"
+#include "usbd_cdc_if.h"
 
 HAL_StatusTypeDef TemporarySave(I2C_EEPROM* eeprom, Tone* data) {
 	int size = sizeof(Tone);
@@ -438,3 +440,17 @@ void InitFactorySetTones(void){
 	SetDefaultSynth14((Tone*)&tones[6]);
 }
 
+void printTone(Tone* t){
+	size_t size = sizeof(Tone);
+	uint8_t buff[8 * 64 + 16];
+	char* p = (char*)&buff[0];
+	strcpy(p, "[");
+	p++;
+	for (int i = 0; i < size; i++) {
+		uint8_t byte = ((uint8_t*) t)[i];
+		sprintf(p, "%3d,", byte);
+		p += 4;
+	}
+	strcpy(p, "]\r\n");
+	CDC_Transmit_FS(&buff[0], (uint16_t)strlen(buff)+1);
+}

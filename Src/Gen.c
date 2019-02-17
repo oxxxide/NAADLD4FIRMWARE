@@ -50,6 +50,40 @@ void Gen_init(Gen *gen) {
 
 }
 
+
+float FORCE_INLINE Gen_process_fm_plus_noise(Gen *gen, float cv) {
+	float v_eg_amp = AHR_proc(&gen->eg_amp);
+	float bend = AHR_proc(&gen->eg_bend);
+	float fmv=0;
+	int cutoff_mod = 0;
+	const LFO_DESTINATION lfo_dest = LFO_getDest(&gen->lfo);
+	switch (lfo_dest) {
+		case Dest_ModPitch:
+			fmv = Osc_proc_lfo(&gen->modu,&gen->lfo);
+			break;
+		case Dest_Cutoff:
+			cutoff_mod = LFO_proc(&gen->lfo);
+			fmv = Osc_proc(&gen->modu);
+			break;
+		default :
+			fmv = Osc_proc(&gen->modu);
+			break;
+	}
+	float v_noise = Noise_Generate() * AHR_proc(&gen->eg_noise)
+			* gen->noise_level;
+	fmv = fmv * AHR_proc(&gen->eg_mod) * gen->mod_depth + v_noise;
+	fmv = LIMIT(fmv,1.0f,-1.0f);
+	float v_osc_carr = Osc_proc_bend_fm_lfo(&gen->carr, cv, bend, fmv, &gen->lfo);
+	float ret = (v_osc_carr * v_eg_amp * gen->carr_level);
+	switch (gen->filter.filter_type) {
+		case BYPASS:
+			return ret;
+		default:
+			return Filter_process_no_envelope_w_lfo(&gen->filter, ret,
+					(int32_t) (Decay_proc(&gen->decay_filter) * gen->decay_filter.i_amount + cutoff_mod));
+	}
+}
+
 float FORCE_INLINE Gen_process_fm(Gen *gen, float cv) {
 	float v_eg_amp = AHR_proc(&gen->eg_amp);
 	float bend = AHR_proc(&gen->eg_bend);

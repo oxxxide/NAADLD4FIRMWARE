@@ -10,7 +10,7 @@
   * inserted by the user or by software development tools
   * are owned by their respective copyright owners.
   *
-  * Copyright (c) 2018 STMicroelectronics International N.V. 
+  * Copyright (c) 2019 STMicroelectronics International N.V. 
   * All rights reserved.
   *
   * Redistribution and use in source and binary forms, with or without 
@@ -50,6 +50,7 @@
 #include "main.h"
 #include "stm32f4xx_hal.h"
 #include "cmsis_os.h"
+#include "usb_device.h"
 
 /* USER CODE BEGIN Includes */
 #include "processing.h"
@@ -63,6 +64,7 @@
 #include "MIDIParser.h"
 #include "Sequencer.h"
 #include "MidiConfig.h"
+#include "usbd_cdc_if.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -87,6 +89,9 @@ TIM_HandleTypeDef htim13;
 UART_HandleTypeDef huart1;
 
 osThreadId defaultTaskHandle;
+osThreadId cdcTaskHandle;
+osThreadId accessStorageTaHandle;
+osMessageQId queue01Handle;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
@@ -127,6 +132,8 @@ static void MX_USART1_UART_Init(void);
 static void MX_TIM11_Init(void);
 static void MX_TIM13_Init(void);
 void StartDefaultTask(void const * argument);
+void StartCdcTask(void const * argument);
+void StartAccessStorageTask(void const * argument);
 static void MX_NVIC_Init(void);
 
 /* USER CODE BEGIN PFP */
@@ -260,9 +267,23 @@ int main(void)
   osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 128);
   defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
+  /* definition and creation of cdcTask */
+  osThreadDef(cdcTask, StartCdcTask, osPriorityLow, 0, 128);
+  cdcTaskHandle = osThreadCreate(osThread(cdcTask), NULL);
+
+  /* definition and creation of accessStorageTa */
+  osThreadDef(accessStorageTa, StartAccessStorageTask, osPriorityLow, 0, 128);
+  accessStorageTaHandle = osThreadCreate(osThread(accessStorageTa), NULL);
+
   /* USER CODE BEGIN RTOS_THREADS */
 	/* add threads, ... */
   /* USER CODE END RTOS_THREADS */
+
+  /* Create the queue(s) */
+  /* definition and creation of queue01 */
+/* what about the sizeof here??? cd native code */
+  osMessageQDef(queue01, 16, uint16_t);
+  queue01Handle = osMessageCreate(osMessageQ(queue01), NULL);
 
   /* USER CODE BEGIN RTOS_QUEUES */
 	/* add queues, ... */
@@ -678,8 +699,6 @@ static void MX_DMA_Init(void)
         * Output
         * EVENT_OUT
         * EXTI
-     PA11   ------> USB_OTG_FS_DM
-     PA12   ------> USB_OTG_FS_DP
 */
 static void MX_GPIO_Init(void)
 {
@@ -760,14 +779,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : PA11 PA12 */
-  GPIO_InitStruct.Pin = GPIO_PIN_11|GPIO_PIN_12;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-  GPIO_InitStruct.Alternate = GPIO_AF10_OTG_FS;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pins : BLED1_Pin BLED2_Pin BLED3_Pin BLED4_Pin 
                            BLED5_Pin BLED6_Pin BLED7_Pin */
@@ -1271,9 +1282,11 @@ void onChangeRE_E(int id, int add) {
 	}
 
 	if (LcdMenuState == LCD_STATE_SAVE_PROGRAM) {
+
 		tartgetProgramNo += add;
 		tartgetProgramNo &= 0x7F;
 		updateSelectProgram();
+
 		return;
 	}
 
@@ -1401,7 +1414,16 @@ void ON_PUSH_EXIT(void) {
 
 }
 
+
 void ON_PUSH_ENTER(void) {
+
+	/*
+	if (LcdMenuState == LCD_STATE_DEFAULT && is_pressed_key_SHIFT) {
+		uint16_t mess = (1 << 8) | (uint8_t) SelectedChannel;
+		osMessagePut(queue01Handle, mess, 0);
+		return;
+	}
+	*/
 
 	if (LcdMenuState == LCD_STATE_MENU) {
 		switch (LcdMenuSelectedItemIndex) {
@@ -1536,7 +1558,7 @@ void ON_PUSH_ENTER(void) {
 	}
 
 	if (LcdMenuState == LCD_STATE_MONITOR_CV) {
-		CV_Monitor_Show();
+		//NOP
 		return;
 	}
 
@@ -1582,17 +1604,19 @@ void ON_PUSH_ENTER(void) {
 }
 
 static void updateSelectProgram() {
-	char buff[16];
+	static char buff[17];
 	if (LcdMenuState == LCD_STATE_SAVE_PROGRAM) {
 		lcdWriteText(0, "Store Program   ", 16);
 		sprintf(buff, "%c ~ %03d         ", (char) ('A' + SelectedChannel),
 				tartgetProgramNo);
-		lcdWriteText(1, buff, 16);
-	} else {
+
+		lcdWriteText(1, &buff[0], 16);
+	} else if(LcdMenuState == LCD_STATE_LOAD_PROGRAM){
 		lcdWriteText(0, "Load Program    ", 16);
 		sprintf(buff, "%c  %03d         ", (char) ('A' + SelectedChannel),
 				tartgetProgramNo);
-		lcdWriteText(1, buff, 16);
+
+		lcdWriteText(1, &buff[0], 16);
 	}
 }
 
@@ -1707,7 +1731,7 @@ static void updateLCD() {
 		return;
 	}
 
-	static const char* MOD_TYPE_NAMES[2] = { "FM", "AM" };
+	static const char* MOD_TYPE_NAMES[] = { "FM", "AM", "FM+Nz" };
 
 	int param = 0;
 	switch (selected_row) {
@@ -2074,7 +2098,14 @@ void ON_RECEIVE_CONTROL_CHANGE(uint8_t ch, uint8_t no, uint8_t value) {
 			break;
 
 		case CCNo_OSC_MOD_TYPE:
-			Gen_set_modtype(g, value < 64 ? MODTYPE_FM : MODTYPE_AM);
+
+			if( value <42){
+				Gen_set_modtype(g, MODTYPE_FM);
+			}else if(value < 84){
+				Gen_set_modtype(g, MODTYPE_AM);
+			}else{
+				Gen_set_modtype(g, MODTYPE_FM_NOISE_ROUTED);
+			}
 			if (current_id == ID_Osc_ModType) {
 				updateLCD();
 			}
@@ -2438,6 +2469,8 @@ void ON_RECEIVE_CONTINUE() {
 /* StartDefaultTask function */
 void StartDefaultTask(void const * argument)
 {
+  /* init code for USB_DEVICE */
+  MX_USB_DEVICE_Init();
 
   /* USER CODE BEGIN 5 */
 
@@ -2465,6 +2498,37 @@ void StartDefaultTask(void const * argument)
 		}
 	}
   /* USER CODE END 5 */ 
+}
+
+/* StartCdcTask function */
+void StartCdcTask(void const * argument)
+{
+  /* USER CODE BEGIN StartCdcTask */
+	static osEvent event;
+	/* Infinite loop */
+	for (;;) {
+		osDelay(100);
+		event = osMessageGet(queue01Handle, osWaitForever);
+		if (event.status == osEventMessage) {
+			Tone t;
+			InitTone(&t);
+			ToneCopyFromGen(&t, &synth[event.value.v & 0xF]);
+			printTone(&t);
+		}
+	}
+  /* USER CODE END StartCdcTask */
+}
+
+/* StartAccessStorageTask function */
+void StartAccessStorageTask(void const * argument)
+{
+  /* USER CODE BEGIN StartAccessStorageTask */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(100);
+  }
+  /* USER CODE END StartAccessStorageTask */
 }
 
 /**

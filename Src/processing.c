@@ -62,12 +62,12 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s) {
 }
 
 static FORCE_INLINE void calcCvValue() {
-	if (HAL_GPIO_ReadPin(GPIO_INPUT_ADCSW1_GPIO_Port, GPIO_INPUT_ADCSW1_Pin)
-			== GPIO_PIN_RESET) {
-		cv1 = 1.0f;
-	} else {
+	//if (HAL_GPIO_ReadPin(GPIO_INPUT_ADCSW1_GPIO_Port, GPIO_INPUT_ADCSW1_Pin)
+	//		== GPIO_PIN_RESET) {
+	//	cv1 = 1.0f;
+	//} else {
 		cv1 = cvToExponential(adcResult1 / 2500.0f);
-	}
+	//}
 	if (HAL_GPIO_ReadPin(GPIO_INPUT_ADCSW2_GPIO_Port, GPIO_INPUT_ADCSW2_Pin)
 			== GPIO_PIN_RESET) {
 		cv2 = 1.0f;
@@ -88,6 +88,19 @@ static FORCE_INLINE void calcCvValue() {
 	}
 }
 
+static FORCE_INLINE float process_main(Gen *gen, float cv) {
+	switch (gen->modtype) {
+	case MODTYPE_FM:
+		return (Gen_process_fm(gen, USE_CV_IN ? cv : 1.0f));
+	case MODTYPE_AM:
+		return (Gen_process_ringmod(gen, USE_CV_IN ? cv : 1.0f));
+	case MODTYPE_FM_NOISE_ROUTED:
+		return (Gen_process_fm_plus_noise(gen, USE_CV_IN ? cv : 1.0f));
+	default:
+		return 0;
+	}
+}
+
 static FORCE_INLINE void audio_process(void* dest) {
 
 	float fvalue = 0;
@@ -100,37 +113,21 @@ static FORCE_INLINE void audio_process(void* dest) {
 		sumL = 0;
 		sumR = 0;
 
-		if(synth[0].modtype==MODTYPE_FM){
-			fvalue = (Gen_process_fm(&synth[0], USE_CV_IN ? cv1 : 1.0f));
-		}else{
-			fvalue = (Gen_process_ringmod(&synth[0], USE_CV_IN ? cv1 : 1.0f));
-		}
-		sumL += fvalue*synth[0].cof_pan_l;
-		sumR += fvalue*synth[0].cof_pan_r;
+		fvalue = process_main(&synth[0], cv1);
+		sumL += fvalue * synth[0].cof_pan_l;
+		sumR += fvalue * synth[0].cof_pan_r;
 
-		if (synth[1].modtype == MODTYPE_FM) {
-			fvalue = (Gen_process_fm(&synth[1], USE_CV_IN ? cv2 : 1.0f));
-		} else {
-			fvalue = (Gen_process_ringmod(&synth[1], USE_CV_IN ? cv2 : 1.0f));
-		}
-		sumL += fvalue*synth[1].cof_pan_l;
-		sumR += fvalue*synth[1].cof_pan_r;
+		fvalue = process_main(&synth[1], cv2);
+		sumL += fvalue * synth[1].cof_pan_l;
+		sumR += fvalue * synth[1].cof_pan_r;
 
-		if (synth[2].modtype == MODTYPE_FM) {
-			fvalue = (Gen_process_fm(&synth[2], USE_CV_IN ? cv3 : 1.0f));
-		} else {
-			fvalue = (Gen_process_ringmod(&synth[2], USE_CV_IN ? cv3 : 1.0f));
-		}
-		sumL += fvalue*synth[2].cof_pan_l;
-		sumR += fvalue*synth[2].cof_pan_r;
+		fvalue = process_main(&synth[2], cv3);
+		sumL += fvalue * synth[2].cof_pan_l;
+		sumR += fvalue * synth[2].cof_pan_r;
 
-		if (synth[3].modtype == MODTYPE_FM) {
-			fvalue = (Gen_process_fm(&synth[3], USE_CV_IN ? cv4 : 1.0f));
-		} else {
-			fvalue = (Gen_process_ringmod(&synth[3], USE_CV_IN ? cv4 : 1.0f));
-		}
-		sumL += fvalue*synth[3].cof_pan_l;
-		sumR += fvalue*synth[3].cof_pan_r;
+		fvalue = process_main(&synth[3], cv4);
+		sumL += fvalue * synth[3].cof_pan_l;
+		sumR += fvalue * synth[3].cof_pan_r;
 
 		sumL = (sumL > 1.0f) ? 1.0f : (sumL < -1.0f) ? -1.0f : sumL;
 		sumR = (sumR > 1.0f) ? 1.0f : (sumR < -1.0f) ? -1.0f : sumR;

@@ -10,7 +10,7 @@
   * inserted by the user or by software development tools
   * are owned by their respective copyright owners.
   *
-  * Copyright (c) 2018 STMicroelectronics International N.V. 
+  * Copyright (c) 2019 STMicroelectronics International N.V. 
   * All rights reserved.
   *
   * Redistribution and use in source and binary forms, with or without 
@@ -165,7 +165,7 @@
 #define USE_EXTERNAL_GATE 1
 
 //System Info
-#define FIRMWARE_VERSION "FW Version 1.1  "
+#define FIRMWARE_VERSION "FW Version 1.11 "
 
 #define I2C_LCD_ADDRESS 0x27 /*PCF8574T*/
 //#define I2C_LCD_ADDRESS 0x3F /*PCF8574A*/

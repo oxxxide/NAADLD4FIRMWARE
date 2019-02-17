@@ -80,4 +80,6 @@ void InitTone(Tone* tone);
 
 void InitFactorySetTones(void);
 
+void printTone(Tone* t);
+
 #endif /* TONE_H_ */
