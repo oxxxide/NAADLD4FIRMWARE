@@ -2005,9 +2005,15 @@ void ON_RECEIVE_NOTE_ON(uint8_t ch, uint8_t note, uint8_t velocity) {
 		break;
 	}
 
-	if (midiConfig.channel_A == ch && midiConfig.noteNo_A == note) {
-		Gen_trig(&synth[0], v);
+	if (midiConfig.channel_A == ch) {
+		if (midiConfig.noteNo_A == NOTEMAP_SCALE) {
+			Gen_trig(&synth[0], v);
+		} else if (midiConfig.noteNo_A == note) {
+			Gen_trig(&synth[0], v);
+		}
+
 	}
+
 	if (midiConfig.channel_B == ch && midiConfig.noteNo_B == note) {
 		Gen_trig(&synth[1], v);
 	}

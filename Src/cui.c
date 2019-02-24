@@ -123,26 +123,42 @@ void MIDIConfig_Show(MidiConfig* midiConfig) {
 		nn = midiConfig->noteNo_D;
 		break;
 	}
+
 	sprintf(buff1, "Ch.%c MidiCh Note", displayChannel);
-	sprintf(buff2, "         %2d  %3d", ch + 1, nn);
+	if (nn == NOTEMAP_SCALE) {
+		sprintf(buff2, "         %2d  SCL", ch + 1);
+	} else {
+		sprintf(buff2, "         %2d  %3d", ch + 1, nn);
+	}
 	lcdWriteText(0, buff1, 16);
 	lcdWriteText(1, buff2, 16);
 
 }
 
+
+static int loop(int a, int b) {
+	int tmp = a + b;
+	if (tmp < 0) {
+		tmp = NOTEMAP_SCALE;
+	} else if (tmp > NOTEMAP_SCALE) {
+		tmp = 0;
+	}
+	return tmp;
+}
+
 void MIDIConfig_ChangeNt(MidiConfig* midiConfig, int add) {
 	switch (displayChannel) {
 	case 'A':
-		midiConfig->noteNo_A = LIMIT(midiConfig->noteNo_A + add, 127, 0);
+		midiConfig->noteNo_A = loop(midiConfig->noteNo_A, add);
 		break;
 	case 'B':
-		midiConfig->noteNo_B = LIMIT(midiConfig->noteNo_B + add, 127, 0);
+		midiConfig->noteNo_B = loop(midiConfig->noteNo_B, add);
 		break;
 	case 'C':
-		midiConfig->noteNo_C = LIMIT(midiConfig->noteNo_C + add, 127, 0);
+		midiConfig->noteNo_C = loop(midiConfig->noteNo_C, add);
 		break;
 	case 'D':
-		midiConfig->noteNo_D = LIMIT(midiConfig->noteNo_D + add, 127, 0);
+		midiConfig->noteNo_D = loop(midiConfig->noteNo_D, add);
 		break;
 	}
 	MIDIConfig_Show(midiConfig);
