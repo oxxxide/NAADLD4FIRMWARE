@@ -15,6 +15,7 @@
 #include "LFO.h"
 #include "Decay.h"
 #include "MultiFilter.h"
+#include "MidiConfig.h"
 #include "main.h"
 
 typedef enum {
@@ -66,6 +67,7 @@ typedef struct {
 
 	float cof_pan_l;
 	float cof_pan_r;
+
 } Gen;
 
 extern float adcValue1;
@@ -74,6 +76,8 @@ extern float adcValue3;
 extern float adcValue4;
 
 void Gen_trig(Gen *gen, float velocity);
+
+void Gen_trig_note(Gen *gen, float velocity, uint8_t noteNo);
 
 void Gen_init(Gen *gen);
 
@@ -232,6 +236,8 @@ void Gen_set_lfo_depth(Gen* gen, uint8_t v);
 void Gen_set_lfo_dest(Gen* gen, int8_t v);
 
 void Gen_set_pan(Gen* gen, int v);
+
+void Gen_set_pitchShift(Gen* gen, float rate);
 
 void preset_kikck(Gen* gen);
 

@@ -12,6 +12,7 @@
 void Osc_Init(Oscill *osc) {
 	osc->phase = 0;
 	osc->modDelta = 0;
+	osc->pitchSift = 1.0f;
 	Osc_set_pitch(osc, 60);
 	Osc_set_fine(osc, 0);
 	Osc_set_modgain(osc, 20);
@@ -55,7 +56,7 @@ void Osc_set_pitch(Oscill *osc, int note) {
 	osc->pitch = note;
 	float _fine = osc->fine / 128.0f;
 	osc->delta =
-			note_to_freq(osc->pitch + _fine) / SAMPLING_RATE * MAX_VALUE_FIXEDPOINT_4_16;
+			note_to_freq(osc->pitch + _fine) / SAMPLING_RATE * MAX_VALUE_FIXEDPOINT_4_16 * osc->pitchSift;
 }
 
 void Osc_set_fine(Oscill *osc, int finetune) {
@@ -66,7 +67,15 @@ void Osc_set_fine(Oscill *osc, int finetune) {
 	float _fine = osc->fine / 128.0f;
 
 	osc->delta =
-			note_to_freq(osc->pitch + _fine) / SAMPLING_RATE * MAX_VALUE_FIXEDPOINT_4_16;
+			note_to_freq(osc->pitch + _fine) / SAMPLING_RATE * MAX_VALUE_FIXEDPOINT_4_16 * osc->pitchSift;
+}
+
+void Osc_update_delata(Oscill *osc){
+
+	float _fine = osc->fine / 128.0f;
+
+	osc->delta =
+			note_to_freq(osc->pitch + _fine) / SAMPLING_RATE * MAX_VALUE_FIXEDPOINT_4_16 * osc->pitchSift;
 }
 
 void Osc_set_modgain(Oscill *osc, int note) {

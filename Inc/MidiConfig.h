@@ -108,6 +108,9 @@ typedef struct{
 
 const float VelocityCurve_Linear[128];
 const float VelocityCurve_Exponential[128];
+const float deltaArray[128];
+
+#define NOTEMAP_SCALE 128
 
 typedef enum {
 	InternalClock,

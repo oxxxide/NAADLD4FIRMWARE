@@ -150,7 +150,12 @@ static void updateSelectProgram(void);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
-
+static void resetPitchShift() {
+	Gen_set_pitchShift(&synth[0], 1.0f);
+	Gen_set_pitchShift(&synth[1], 1.0f);
+	Gen_set_pitchShift(&synth[2], 1.0f);
+	Gen_set_pitchShift(&synth[3], 1.0f);
+}
 /* USER CODE END 0 */
 
 /**
@@ -1041,6 +1046,7 @@ void onChangeRE_C(int id, int add) {
 
 	if (LcdMenuState == LCD_STATE_MIDI_RECEIVE_CONFIG) {
 		MIDIConfig_ChangeCh(&midiConfig, add >= 0 ? 1 : -1);
+		resetPitchShift();
 		return;
 	}
 
@@ -1142,6 +1148,7 @@ void onChangeRE_D(int id, int add) {
 
 	if (LcdMenuState == LCD_STATE_MIDI_RECEIVE_CONFIG) {
 		MIDIConfig_ChangeNt(&midiConfig, add);
+		resetPitchShift();
 		return;
 	}
 
@@ -2005,18 +2012,38 @@ void ON_RECEIVE_NOTE_ON(uint8_t ch, uint8_t note, uint8_t velocity) {
 		break;
 	}
 
-	if (midiConfig.channel_A == ch && midiConfig.noteNo_A == note) {
-		Gen_trig(&synth[0], v);
+	if (midiConfig.channel_A == ch) {
+		if (midiConfig.noteNo_A == NOTEMAP_SCALE) {
+			Gen_trig_note(&synth[0], v, note);
+		} else if (midiConfig.noteNo_A == note) {
+			Gen_trig_note(&synth[0], v, 60);
+		}
 	}
-	if (midiConfig.channel_B == ch && midiConfig.noteNo_B == note) {
-		Gen_trig(&synth[1], v);
+
+	if (midiConfig.channel_B == ch) {
+		if (midiConfig.noteNo_B == NOTEMAP_SCALE) {
+			Gen_trig_note(&synth[1], v, note);
+		} else if (midiConfig.noteNo_B == note) {
+			Gen_trig_note(&synth[1], v, 60);
+		}
 	}
-	if (midiConfig.channel_C == ch && midiConfig.noteNo_C == note) {
-		Gen_trig(&synth[2], v);
+
+	if (midiConfig.channel_C == ch) {
+		if (midiConfig.noteNo_C == NOTEMAP_SCALE) {
+			Gen_trig_note(&synth[2], v, note);
+		} else if (midiConfig.noteNo_C == note) {
+			Gen_trig_note(&synth[2], v, 60);
+		}
 	}
-	if (midiConfig.channel_D == ch && midiConfig.noteNo_D == note) {
-		Gen_trig(&synth[3], v);
+
+	if (midiConfig.channel_D == ch) {
+		if (midiConfig.noteNo_D == NOTEMAP_SCALE) {
+			Gen_trig_note(&synth[3], v, note);
+		} else if (midiConfig.noteNo_D == note) {
+			Gen_trig_note(&synth[3], v, 60);
+		}
 	}
+
 }
 
 void ON_RECEIVE_CONTROL_CHANGE(uint8_t ch, uint8_t no, uint8_t value) {

@@ -29,6 +29,7 @@ typedef struct _OSC {
 	uint32_t delta;
 	float modDelta;
 	float* waveArray;
+	float pitchSift;
 } Oscill;
 
 #define MAX_VALUE_FIXEDPOINT_4_16 67108864
@@ -46,6 +47,8 @@ void Osc_set_pitch(Oscill *osc, int note);
 void Osc_set_fine(Oscill *osc, int finetune);
 
 void Osc_set_modgain(Oscill *osc, int note);
+
+void Osc_update_delata(Oscill *osc);
 
 float Osc_proc(Oscill *osc);
 
