@@ -22,6 +22,18 @@ void Gen_trig(Gen *gen, float velocity){
 	AHR_trig(&gen->eg_amp, velocity);
 }
 
+void Gen_trig_note(Gen *gen, float velocity, uint8_t noteNo){
+
+	Gen_set_pitchShift(gen,deltaArray[noteNo]);
+
+	AHR_trig(&gen->eg_noise, velocity);
+	Decay_trig(&gen->decay_filter, 1.0f);
+	AHR_trig(&gen->eg_mod, 1.0f);
+	float reduce = (1.0f-velocity)*gen->bendVelAmount;
+	AHR_trig(&gen->eg_bend, 1.0f - reduce);
+	AHR_trig(&gen->eg_amp, velocity);
+}
+
 void Gen_init(Gen *gen) {
 
 	Filter_Init(&gen->filter);
@@ -532,6 +544,13 @@ void Gen_set_pan(Gen* gen, int v) {
 		gen->cof_pan_l = 1.0f;
 		gen->cof_pan_r = 1.0f;
 	}
+}
+
+void Gen_set_pitchShift(Gen* gen,float rate){
+	gen->carr.pitchSift = rate;
+	gen->modu.pitchSift = rate;
+	Osc_update_delata(&(gen->carr));
+	Osc_update_delata(&(gen->modu));
 }
 
 void preset_kikck(Gen* gen){
