@@ -291,7 +291,7 @@ void TIM1_TRG_COM_TIM11_IRQHandler(void)
   /* USER CODE BEGIN TIM1_TRG_COM_TIM11_IRQn 0 */
 	static const uint8_t ActiveSensing = 0xFE;
 	HAL_UART_Transmit_IT(&huart1,(uint8_t*)&ActiveSensing,1);
-	if (LcdMenuState == LCD_STATE_MONITOR_CV) {
+	if (LcdMenuState == LCD_STATE_CV_MONTORING_INPUTS) {
 		CV_Monitor_Show();
 	}
   /* USER CODE END TIM1_TRG_COM_TIM11_IRQn 0 */

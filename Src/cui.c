@@ -80,12 +80,12 @@ void SelectMenu(int add) {
 		lcdWriteText(0," MIDI Mapping    ",16);
 		lcdWriteText(1,"~Velocity Curve  ",16);
 		break;
-	case ITEM_INDEX_MONITOR_CV:
-		lcdWriteText(0,"~CV Monitor     ",16);
+	case ITEM_INDEX_CV_INPUT_SETTINGS:
+		lcdWriteText(0,"~CV IN Mapping  ",16);
 		lcdWriteText(1," EchoBack       ",16);
 		break;
 	case ITEM_INDEX_ECHO_BACK:
-		lcdWriteText(0," CV Monitor     ",16);
+		lcdWriteText(0," CV IN Mapping  ",16);
 		lcdWriteText(1,"~EchoBack       ",16);
 		break;
 	case ITEM_INDEX_SYSTEM_INFO:
@@ -400,6 +400,45 @@ void MIDIConfig_EchoBack(MidiConfig* config){
 	}
 }
 
+void CV_Assignment_Settings_Show(CV_ASSIGN* array, int size, int add_input, int add_output, int add_param) {
+
+	static uint8_t selected = 0;
+	selected = LIMIT(selected + add_input, size-1, 0);
+
+	static char str1[17] = {'\0'};
+	sprintf(str1, "CV IN:%c          ", 'A' + selected);
+	lcdWriteText(0, str1, 16);
+
+	CV_ASSIGN* cva = &array[selected];
+	cva->target_channel = LIMIT(cva->target_channel+add_output,size-1,0);
+	cva->assign = LIMIT(cva->assign+add_param,4,0);
+
+	static char str2[17] = {'\0'};
+
+	char *p_name = 0;
+	switch (cva->assign) {
+	case CV_PITCH:
+		p_name = "OSC-PITCH  ";
+		break;
+	case CV_CUTOFF:
+		p_name = "CUTOFF     ";
+		break;
+	case CV_MOD_DEPTH:
+		p_name = "Mod-Depth  ";
+		break;
+	case CV_BEND_AMT:
+		p_name = "Bend-Amount";
+		break;
+	case CV_BEND_REL:
+		p_name = "Bend-Rel   ";
+		break;
+	default:
+		p_name = "";
+	}
+	sprintf(str2, "Ch.%c:%s", 'A'+cva->target_channel,  p_name);
+	lcdWriteText(1, str2, 16);
+}
+
 void CV_Monitor_Show(){
 
 	static char str1[17] = {'\0'};
@@ -412,28 +451,28 @@ void CV_Monitor_Show(){
 			== GPIO_PIN_RESET) {
 		iv1 = 0;
 	} else {
-		iv1 = adcResult1 / 500.0f;
+		iv1 = adcResultA / 500.0f;
 	}
 
 	if (HAL_GPIO_ReadPin(GPIO_INPUT_ADCSW2_GPIO_Port, GPIO_INPUT_ADCSW2_Pin)
 			== GPIO_PIN_RESET) {
 		iv2 = 0;
 	} else {
-		iv2 = adcResult2 / 500.0f;
+		iv2 = adcResultB / 500.0f;
 	}
 
 	if (HAL_GPIO_ReadPin(GPIO_INPUT_ADCSW3_GPIO_Port, GPIO_INPUT_ADCSW3_Pin)
 			== GPIO_PIN_RESET) {
 		iv3 = 0;
 	} else {
-		iv3 = adcResult3 / 500.0f;
+		iv3 = adcResultC / 500.0f;
 	}
 
 	if (HAL_GPIO_ReadPin(GPIO_INPUT_ADCSW4_GPIO_Port, GPIO_INPUT_ADCSW4_Pin)
 			== GPIO_PIN_RESET) {
 		iv4 = 0;
 	} else {
-		iv4 = adcResult4 / 500.0f;
+		iv4 = adcResultD / 500.0f;
 	}
 
 

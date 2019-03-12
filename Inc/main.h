@@ -161,11 +161,11 @@
 #define ARM_MATH_CM4
 #define AUDIO_BLOCK_SIZE 64
 #define ADC_SAMPLE_LENGTH 4
-#define USE_CV_IN 1
 #define USE_EXTERNAL_GATE 1
 
 //System Info
 #define FIRMWARE_VERSION "FW Version 1.11 "
+#define FIRMWARE_VERSION_CODE 5
 
 #define I2C_LCD_ADDRESS 0x27 /*PCF8574T*/
 //#define I2C_LCD_ADDRESS 0x3F /*PCF8574A*/
@@ -174,11 +174,11 @@
 
 //extern volatile LCD_STATE LcdMenuState;
 
-extern uint16_t adcResult1;
-extern uint16_t adcResult2;
-extern uint16_t adcResult3;
-extern uint16_t adcResult4;
-volatile float cv1,cv2,cv3,cv4;
+extern uint16_t adcResultA;
+extern uint16_t adcResultB;
+extern uint16_t adcResultC;
+extern uint16_t adcResultD;
+
 
 void updateEncodersState(void);
 void restoreFactorySet(void);

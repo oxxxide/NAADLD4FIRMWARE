@@ -8,11 +8,6 @@
 #include "Gen.h"
 #include "math.h"
 
-float adcValue1 = 0;
-float adcValue2 = 0;
-float adcValue3 = 0;
-float adcValue4 = 0;
-
 void Gen_trig(Gen *gen, float velocity){
 	AHR_trig(&gen->eg_noise, velocity);
 	Decay_trig(&gen->decay_filter, 1.0f);
@@ -45,7 +40,7 @@ void Gen_init(Gen *gen) {
 	gen->mod_depth = 0;
 	gen->cf_ringmod_dev = 1.0f;
 	gen->bendVelAmount = 1.0f;
-	gen->cv = adcValue1;
+	gen->cv = 0;
 	gen->modtype = MODTYPE_FM;
 
 	AHR_Init(&gen->eg_amp);
@@ -63,7 +58,7 @@ void Gen_init(Gen *gen) {
 }
 
 
-float FORCE_INLINE Gen_process_fm_plus_noise(Gen *gen, float cv) {
+float FORCE_INLINE Gen_process_fm_plus_noise(Gen *gen, CVInputParams* cv) {
 	float v_eg_amp = AHR_proc(&gen->eg_amp);
 	float bend = AHR_proc(&gen->eg_bend);
 	float fmv=0;
@@ -85,7 +80,7 @@ float FORCE_INLINE Gen_process_fm_plus_noise(Gen *gen, float cv) {
 			* gen->noise_level;
 	fmv = fmv * AHR_proc(&gen->eg_mod) * gen->mod_depth + v_noise;
 	fmv = LIMIT(fmv,1.0f,-1.0f);
-	float v_osc_carr = Osc_proc_bend_fm_lfo(&gen->carr, cv, bend, fmv, &gen->lfo);
+	float v_osc_carr = Osc_proc_bend_fm_lfo(&gen->carr, cv->pitchShift, bend, fmv, &gen->lfo);
 	float ret = (v_osc_carr * v_eg_amp * gen->carr_level);
 	switch (gen->filter.filter_type) {
 		case BYPASS:
@@ -96,9 +91,9 @@ float FORCE_INLINE Gen_process_fm_plus_noise(Gen *gen, float cv) {
 	}
 }
 
-float FORCE_INLINE Gen_process_fm(Gen *gen, float cv) {
+float FORCE_INLINE Gen_process_fm(Gen *gen, CVInputParams* cvinput) {
 	float v_eg_amp = AHR_proc(&gen->eg_amp);
-	float bend = AHR_proc(&gen->eg_bend);
+	float bend = AHR_proc(&gen->eg_bend) * cvinput->bendAmt;
 	float fmv=0;
 	int cutoff_mod = 0;
 	const LFO_DESTINATION lfo_dest = LFO_getDest(&gen->lfo);
@@ -115,7 +110,7 @@ float FORCE_INLINE Gen_process_fm(Gen *gen, float cv) {
 			break;
 	}
 	fmv = fmv * AHR_proc(&gen->eg_mod) * gen->mod_depth;
-	float v_osc_carr = Osc_proc_bend_fm_lfo(&gen->carr, cv, bend, fmv, &gen->lfo);
+	float v_osc_carr = Osc_proc_bend_fm_lfo(&gen->carr, cvinput->pitchShift, bend, fmv, &gen->lfo);
 	float v_noise = Noise_Generate() * AHR_proc(&gen->eg_noise)
 			* gen->noise_level;
 	float ret = (v_osc_carr * v_eg_amp * gen->carr_level) + (v_noise);
@@ -129,9 +124,9 @@ float FORCE_INLINE Gen_process_fm(Gen *gen, float cv) {
 	}
 }
 
-float FORCE_INLINE Gen_process_ringmod(Gen *gen, float cv) {
+float FORCE_INLINE Gen_process_ringmod(Gen *gen, CVInputParams* cvinput) {
 	float v_eg_amp = AHR_proc(&gen->eg_amp);
-	float bend = AHR_proc(&gen->eg_bend);
+	float bend = AHR_proc(&gen->eg_bend) * cvinput->bendAmt;
 	float amv = 0;
 	float v_osc_carr = 0;
 	int cutoff_mod = 0;
@@ -139,22 +134,22 @@ float FORCE_INLINE Gen_process_ringmod(Gen *gen, float cv) {
 	switch(lfo_dest){
 		case Dest_ModPitch:
 			amv = Osc_proc_lfo(&gen->modu,&gen->lfo);
-			v_osc_carr = Osc_proc_bend(&gen->carr, cv, bend, 1.0f);
+			v_osc_carr = Osc_proc_bend(&gen->carr, cvinput->pitchShift, bend, 1.0f);
 			break;
 		case Dest_Cutoff:
 			cutoff_mod = LFO_proc(&gen->lfo);
 			amv = Osc_proc(&gen->modu);
-			v_osc_carr = Osc_proc_bend(&gen->carr, cv, bend, 1.0f);
+			v_osc_carr = Osc_proc_bend(&gen->carr, cvinput->pitchShift, bend, 1.0f);
 			break;
 		case Dest_ModDepth:
 			amv = Osc_proc(&gen->modu);
 			amv = ( (LFO_proc(&gen->lfo)+63.9f)/128.0f)*amv;
-			v_osc_carr = Osc_proc_bend(&gen->carr, cv, bend, 1.0f);
+			v_osc_carr = Osc_proc_bend(&gen->carr, cvinput->pitchShift, bend, 1.0f);
 			break;
 		case Dest_OSCPitch :
 		default:
 			amv = Osc_proc(&gen->modu);
-			v_osc_carr = Osc_proc_bend(&gen->carr, cv, bend, LFO_proc_exp(&gen->lfo));
+			v_osc_carr = Osc_proc_bend(&gen->carr, cvinput->pitchShift, bend, LFO_proc_exp(&gen->lfo));
 			break;
 	}
 

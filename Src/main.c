@@ -111,7 +111,7 @@ static volatile uint8_t tartgetProgramNo = 0;
 Sequencer sequencer;
 static I2C_EEPROM eeprom;
 static MidiConfig midiConfig;
-volatile float cv1 = 0, cv2 = 0, cv3 = 0, cv4 = 0;
+
 volatile uint8_t tmp_byte = 0;
 volatile uint8_t tmp_tx_byte = 0;
 /* USER CODE END PV */
@@ -141,6 +141,7 @@ static void MX_NVIC_Init(void);
 
 static void lightsOff(void);
 static void updateLed(void);
+static void checkFwUpdated(void);
 void revert(void);
 void write_LCD_PARAM(const char *name, int value);
 void write_LCD_PARAM_NAME(const char *param_name, const char* value);
@@ -222,6 +223,13 @@ int main(void)
 	InitLcdManager();
 
 	waitUntilReady(&eeprom);
+
+	InitCvAssignements(cv_assignements,4);
+
+	checkFwUpdated();
+
+	waitUntilReady(&eeprom);
+
 	/*Read System Settngs*/
 	if (READ_SYSTEMCONFIG_FROM_FLASH) {
 		I2CFlash_Read(&eeprom, ROM_ADDRESS_MIDICONFIG, (uint8_t*)&midiConfig,
@@ -1060,6 +1068,11 @@ void onChangeRE_C(int id, int add) {
 		return;
 	}
 
+	if (LcdMenuState == LCD_STATE_CV_INPUT_CONFIG) {
+		CV_Assignment_Settings_Show(cv_assignements, 4, 0, add>=0 ? 1 : -1, 0);
+		return;
+	}
+
 	if (LcdMenuState != LCD_STATE_DEFAULT) {
 		return;
 	}
@@ -1159,6 +1172,11 @@ void onChangeRE_D(int id, int add) {
 
 	if (LcdMenuState == LCD_STATE_SEQ_BEAT_REPEAT) {
 		showSequencerBeatRepeatConfig(&sequencer, 3, add);
+		return;
+	}
+
+	if (LcdMenuState == LCD_STATE_CV_INPUT_CONFIG) {
+		CV_Assignment_Settings_Show(cv_assignements, 4, 0, 0, add >= 0 ? 1 : -1);
 		return;
 	}
 
@@ -1276,6 +1294,13 @@ void onChangeRE_E(int id, int add) {
 		return;
 	}
 
+
+	if (LcdMenuState == LCD_STATE_CV_INPUT_CONFIG) {
+		CV_Assignment_Settings_Show(cv_assignements, 4, add >= 0 ? 1 : -1, 0, 0);
+		return;
+	}
+
+
 	if (LcdMenuState == LCD_STATE_PROGRAM_MENU) {
 		ShowProgramMenu(add >= 0 ? 1 : -1);
 		return;
@@ -1374,6 +1399,13 @@ void ON_PUSH_EXIT(void) {
 		return;
 	}
 
+	if(LcdMenuState == LCD_STATE_CV_INPUT_CONFIG){
+		//TODO: Save Config
+		LcdMenuState = LCD_STATE_MENU;
+		SelectMenu(0);
+		return;
+	}
+
 	if (LcdMenuState == LCD_STATE_MIDI_RECEIVE_CONFIG
 			|| LcdMenuState == LCD_STATE_VELC
 			|| LcdMenuState == LCD_STATE_ECHOBACK
@@ -1388,7 +1420,8 @@ void ON_PUSH_EXIT(void) {
 		return;
 	}
 
-	if (LcdMenuState == LCD_STATE_MONITOR_CV
+	if (LcdMenuState == LCD_STATE_CV_INPUT_CONFIG
+			|| LcdMenuState == LCD_STATE_CV_MONTORING_INPUTS
 			|| LcdMenuState == LCD_STATE_SYSTEM_INFO
 			|| LcdMenuState == LCD_STATE_SEQ_EDIT
 			|| LcdMenuState == LCD_STATE_SEQ_STEP_CFG
@@ -1450,9 +1483,9 @@ void ON_PUSH_ENTER(void) {
 			LcdMenuState = LCD_STATE_VELC;
 			MIDIConfig_VelocityCurve(&midiConfig, 0);
 			break;
-		case ITEM_INDEX_MONITOR_CV:
-			LcdMenuState = LCD_STATE_MONITOR_CV;
-			CV_Monitor_Show();
+		case ITEM_INDEX_CV_INPUT_SETTINGS:
+			LcdMenuState = LCD_STATE_CV_INPUT_CONFIG;
+			CV_Assignment_Settings_Show(cv_assignements,4,0,0,0);
 			break;
 		case ITEM_INDEX_ECHO_BACK:
 			LcdMenuState = LCD_STATE_ECHOBACK;
@@ -1564,7 +1597,7 @@ void ON_PUSH_ENTER(void) {
 		return;
 	}
 
-	if (LcdMenuState == LCD_STATE_MONITOR_CV) {
+	if (LcdMenuState == LCD_STATE_CV_INPUT_CONFIG) {
 		//NOP
 		return;
 	}
@@ -2488,6 +2521,18 @@ void ON_RECEIVE_STOP() {
 void ON_RECEIVE_CONTINUE() {
 	if (midiConfig.syncMode == ExternalClock&& sequencer.status == SEQ_IDLING) {
 		StartSequencer(&sequencer);
+	}
+}
+
+void checkFwUpdated() {
+	uint16_t v = 0;
+	I2CFlash_LoadVersion(&eeprom, &v);
+	if (v != FIRMWARE_VERSION_CODE) {
+		if (I2CFlash_SaveCvMappingConfig(&eeprom, &cv_assignements[0])
+				== HAL_OK) {
+			v = FIRMWARE_VERSION_CODE;
+			I2CFlash_SaveVersion(&eeprom, &v);
+		}
 	}
 }
 
