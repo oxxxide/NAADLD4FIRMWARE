@@ -78,7 +78,7 @@ float FORCE_INLINE Gen_process_fm_plus_noise(Gen *gen, CVInputParams* cv) {
 	}
 	float v_noise = Noise_Generate() * AHR_proc(&gen->eg_noise)
 			* gen->noise_level;
-	fmv = fmv * AHR_proc(&gen->eg_mod) * gen->mod_depth + v_noise;
+	fmv = fmv * AHR_proc(&gen->eg_mod) * gen->mod_depth *cv->modDepth + v_noise;
 	fmv = LIMIT(fmv,1.0f,-1.0f);
 	float v_osc_carr = Osc_proc_bend_fm_lfo(&gen->carr, cv->pitchShift, bend, fmv, &gen->lfo);
 	float ret = (v_osc_carr * v_eg_amp * gen->carr_level);
@@ -109,7 +109,7 @@ float FORCE_INLINE Gen_process_fm(Gen *gen, CVInputParams* cvinput) {
 			fmv = Osc_proc(&gen->modu);
 			break;
 	}
-	fmv = fmv * AHR_proc(&gen->eg_mod) * gen->mod_depth;
+	fmv = fmv * AHR_proc(&gen->eg_mod) * gen->mod_depth * cvinput->modDepth;
 	float v_osc_carr = Osc_proc_bend_fm_lfo(&gen->carr, cvinput->pitchShift, bend, fmv, &gen->lfo);
 	float v_noise = Noise_Generate() * AHR_proc(&gen->eg_noise)
 			* gen->noise_level;
@@ -120,7 +120,7 @@ float FORCE_INLINE Gen_process_fm(Gen *gen, CVInputParams* cvinput) {
 			return ret;
 		default:
 			return Filter_process_no_envelope_w_lfo(&gen->filter, ret,
-					(int32_t) (Decay_proc(&gen->decay_filter) * gen->decay_filter.i_amount + cutoff_mod));
+					(int32_t) (Decay_proc(&gen->decay_filter) * gen->decay_filter.i_amount + cutoff_mod + (cvinput->cutoff * 127.0f)  ));
 	}
 }
 

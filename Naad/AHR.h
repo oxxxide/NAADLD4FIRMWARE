@@ -48,6 +48,8 @@ void AHR_set_hold(AHR_EG *ahr, int _value);
 
 void AHR_set_release(AHR_EG *ahr, int _value);
 
+void AHR_set_cvin(AHR_EG *ahr, float cv);
+
 float AHR_proc(AHR_EG *ahr);
 
 void AHR_Init(AHR_EG *ahr);

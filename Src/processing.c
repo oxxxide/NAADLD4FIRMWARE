@@ -107,12 +107,16 @@ static FORCE_INLINE void distributeCvInputToParams() {
 			param->pitchShift = cvToExponential_V_OCT(rawValue / 2500.0f);
 			break;
 		case CV_CUTOFF:
+			param->cutoff = (rawValue / 2500.0f);
 			break;
 		case CV_MOD_DEPTH:
+			param->modDepth = (rawValue / 2500.0f);
 			break;
 		case CV_BEND_AMT:
+			param->bendAmt = (rawValue / 2500.0f);
 			break;
 		case CV_BEND_REL:
+			param->bendRel = (rawValue / 2500.0f);
 			break;
 		}
 	}

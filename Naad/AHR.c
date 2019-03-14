@@ -47,10 +47,18 @@ void FORCE_INLINE AHR_set_hold(AHR_EG *ahr, int _value) {
 }
 
 void FORCE_INLINE AHR_set_release(AHR_EG *ahr, int _value){
-    _value = _limit_(_value);
-    ahr->i_release = _value;
-    float millisec = powf(10, ahr->i_release/20.0f);
-    ahr->decay_coefficient = powf(0.1f, 1.0f / (millisec * (SAMPLING_RATE/1000.0f)));
+
+    ahr->i_release = _limit_(_value);
+    ahr->decay_coefficient = Table_DecayCoefficient[ahr->i_release];
+
+    //float millisec = powf(10, ahr->i_release/20.0f);
+    //ahr->decay_coefficient = powf(0.1f, 1.0f / (millisec * (SAMPLING_RATE/1000.0f)));
+}
+
+
+void FORCE_INLINE AHR_set_cvin(AHR_EG *ahr, float cv){
+	float idx  = ahr->i_release * cv;
+	ahr->decay_coefficient = Table_DecayCoefficient[(int)idx];
 }
 
 float FORCE_INLINE AHR_proc(AHR_EG *ahr) {
