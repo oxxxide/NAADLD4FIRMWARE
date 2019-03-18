@@ -1176,7 +1176,22 @@ void onChangeRE_D(int id, int add) {
 	}
 
 	if (LcdMenuState == LCD_STATE_CV_INPUT_CONFIG) {
-		CV_Assignment_Settings_Show(cv_assignements, 4, 0, 0, add >= 0 ? 1 : -1);
+
+		for (int i = 0; i < 4; i++) {
+			AHR_EG* eg;
+			switch (cv_assignements[i].assign) {
+			case CV_BEND_REL:
+				eg = &(synth[cv_assignements[i].target_channel].eg_bend);
+				AHR_set_release(eg, eg->i_release);
+				break;
+			default:
+				break;
+			}
+		}
+
+		CV_Assignment_Settings_Show(cv_assignements, 4, 0, 0,
+				add >= 0 ? 1 : -1);
+
 		return;
 	}
 
@@ -1377,6 +1392,19 @@ void ON_PUSH_MENU(void) {
 		return;
 	}
 
+	if(LcdMenuState == LCD_STATE_CV_INPUT_CONFIG){
+		LcdMenuState = LCD_STATE_CV_MONTORING_INPUTS;
+		CV_Monitor_Show();
+		return;
+	}
+
+	if(LcdMenuState == LCD_STATE_CV_MONTORING_INPUTS){
+		LcdMenuState = LCD_STATE_CV_INPUT_CONFIG;
+		CV_Assignment_Settings_Show(cv_assignements,4,0,0,0);
+		return;
+	}
+
+
 	if (LcdMenuState == LCD_STATE_DEFAULT || LcdMenuState == LCD_STATE_PROGRAM_MENU) {
 		lightsOff();
 		SelectMenu(0);
@@ -1399,7 +1427,7 @@ void ON_PUSH_EXIT(void) {
 		return;
 	}
 
-	if(LcdMenuState == LCD_STATE_CV_INPUT_CONFIG){
+	if(LcdMenuState == LCD_STATE_CV_INPUT_CONFIG || LcdMenuState == LCD_STATE_CV_MONTORING_INPUTS){
 		//TODO: Save Config
 		LcdMenuState = LCD_STATE_MENU;
 		SelectMenu(0);
