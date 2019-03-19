@@ -447,33 +447,33 @@ void CV_Monitor_Show(){
 	float iv1, iv2, iv3, iv4;
 
 
-	if (HAL_GPIO_ReadPin(GPIO_INPUT_ADCSW1_GPIO_Port, GPIO_INPUT_ADCSW1_Pin)
-			== GPIO_PIN_RESET) {
-		iv1 = 0;
-	} else {
+	//if (HAL_GPIO_ReadPin(GPIO_INPUT_ADCSW1_GPIO_Port, GPIO_INPUT_ADCSW1_Pin)
+	//		== GPIO_PIN_RESET) {
+	//	iv1 = 0;
+	//} else {
 		iv1 = adcResultA / 500.0f;
-	}
+	//}
 
-	if (HAL_GPIO_ReadPin(GPIO_INPUT_ADCSW2_GPIO_Port, GPIO_INPUT_ADCSW2_Pin)
-			== GPIO_PIN_RESET) {
-		iv2 = 0;
-	} else {
+	//if (HAL_GPIO_ReadPin(GPIO_INPUT_ADCSW2_GPIO_Port, GPIO_INPUT_ADCSW2_Pin)
+	//		== GPIO_PIN_RESET) {
+	//	iv2 = 0;
+	//} else {
 		iv2 = adcResultB / 500.0f;
-	}
+	//}
 
-	if (HAL_GPIO_ReadPin(GPIO_INPUT_ADCSW3_GPIO_Port, GPIO_INPUT_ADCSW3_Pin)
-			== GPIO_PIN_RESET) {
-		iv3 = 0;
-	} else {
+	//if (HAL_GPIO_ReadPin(GPIO_INPUT_ADCSW3_GPIO_Port, GPIO_INPUT_ADCSW3_Pin)
+	//		== GPIO_PIN_RESET) {
+	//	iv3 = 0;
+	//} else {
 		iv3 = adcResultC / 500.0f;
-	}
+	//}
 
-	if (HAL_GPIO_ReadPin(GPIO_INPUT_ADCSW4_GPIO_Port, GPIO_INPUT_ADCSW4_Pin)
-			== GPIO_PIN_RESET) {
-		iv4 = 0;
-	} else {
+	//if (HAL_GPIO_ReadPin(GPIO_INPUT_ADCSW4_GPIO_Port, GPIO_INPUT_ADCSW4_Pin)
+	//		== GPIO_PIN_RESET) {
+	//	iv4 = 0;
+	//} else {
 		iv4 = adcResultD / 500.0f;
-	}
+	//}
 
 
 	sprintf(str1, "A:%2.2fV B:%2.2fV ", iv1, iv2);

@@ -38,7 +38,7 @@ static FORCE_INLINE void audio_process();
 static FORCE_INLINE void initCvInputParams(CVInputParams* p) {
 	p->pitchShift = 1.0f;
 	p->modDepth = 1.0f;
-	p->cutoff = 1.0f;
+	p->cutoff = 0;
 	p->bendAmt = 1.0f;
 	p->bendRel = 1.0f;
 }
@@ -117,6 +117,20 @@ static FORCE_INLINE void distributeCvInputToParams() {
 			break;
 		case CV_BEND_REL:
 			param->bendRel = (rawValue / 2500.0f);
+			AHR_set_cvin(&(synth[cvass->target_channel].eg_bend),
+					param->bendRel);
+			break;
+		case CV_OSC_AEG_REL:
+			param->bendRel = (rawValue / 2500.0f);
+			AHR_set_cvin(&(synth[cvass->target_channel].eg_amp),
+					param->bendRel);
+			break;
+		case CV_NOISE_AEG_REL:
+			param->bendRel = (rawValue / 2500.0f);
+			AHR_set_cvin(&(synth[cvass->target_channel].eg_noise),
+					param->bendRel);
+			break;
+		default:
 			break;
 		}
 	}

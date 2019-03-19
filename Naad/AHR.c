@@ -58,7 +58,7 @@ void FORCE_INLINE AHR_set_release(AHR_EG *ahr, int _value){
 
 void FORCE_INLINE AHR_set_cvin(AHR_EG *ahr, float cv){
 	float idx  = ahr->i_release * cv;
-	ahr->decay_coefficient = Table_DecayCoefficient[(int)idx];
+	ahr->decay_coefficient = Table_DecayCoefficient[LIMIT((int )idx, 127, 0)];
 }
 
 float FORCE_INLINE AHR_proc(AHR_EG *ahr) {
