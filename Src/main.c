@@ -1428,7 +1428,10 @@ void ON_PUSH_EXIT(void) {
 	}
 
 	if(LcdMenuState == LCD_STATE_CV_INPUT_CONFIG || LcdMenuState == LCD_STATE_CV_MONTORING_INPUTS){
-		//TODO: Save Config
+		if (I2CFlash_SaveCvMappingConfig(&eeprom, cv_assignements) != HAL_OK) {
+			lcdWriteText(0, "Err ", 16);
+			return;
+		}
 		LcdMenuState = LCD_STATE_MENU;
 		SelectMenu(0);
 		return;
