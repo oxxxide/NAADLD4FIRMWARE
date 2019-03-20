@@ -1539,6 +1539,12 @@ void ON_PUSH_ENTER(void) {
 		}
 	}
 
+	if(LcdMenuState == LCD_STATE_CV_INPUT_CONFIG){
+		InitCvAssignements(cv_assignements,4);
+		CV_Assignment_Settings_Show(cv_assignements,4,0,0,0);
+		return;
+	}
+
 	if (LcdMenuState == LCD_STATE_PROGRAM_MENU) {
 		switch (ProgramMenuSelectedItemIndex) {
 		case ITEM_INDEX_TEMPSAVE:

@@ -120,7 +120,7 @@ float FORCE_INLINE Gen_process_fm(Gen *gen, CVInputParams* cvinput) {
 			return ret;
 		default:
 			return Filter_process_no_envelope_w_lfo(&gen->filter, ret,
-					(int32_t) (Decay_proc(&gen->decay_filter) * gen->decay_filter.i_amount + cutoff_mod + (cvinput->cutoff * 127.0f)  ));
+					(int32_t) (Decay_proc(&gen->decay_filter) * gen->decay_filter.i_amount + cutoff_mod + (cvinput->cutoff)  ));
 	}
 }
 

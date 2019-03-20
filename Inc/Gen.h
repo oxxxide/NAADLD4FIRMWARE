@@ -29,10 +29,9 @@ typedef enum {
 
 typedef struct{
 	float pitchShift; //default:1 min:0 max:nolimit
-	float cutoff;
+	int cutoff;
 	float modDepth;
 	float bendAmt; //default:1 min:0 max:1
-	float bendRel;
 } CVInputParams;
 extern CVInputParams CVInputParamsArray[NUM_OF_VOICES];
 

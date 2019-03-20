@@ -402,6 +402,7 @@ void MIDIConfig_EchoBack(MidiConfig* config){
 
 void CV_Assignment_Settings_Show(CV_ASSIGN* array, int size, int add_input, int add_output, int add_param) {
 
+	static const int num_of_paramtype = 4;
 	static uint8_t selected = 0;
 	selected = LIMIT(selected + add_input, size-1, 0);
 
@@ -410,8 +411,8 @@ void CV_Assignment_Settings_Show(CV_ASSIGN* array, int size, int add_input, int 
 	lcdWriteText(0, str1, 16);
 
 	CV_ASSIGN* cva = &array[selected];
-	cva->target_channel = LIMIT(cva->target_channel+add_output,size-1,0);
-	cva->assign = LIMIT(cva->assign+add_param,4,0);
+	cva->target_channel = LIMIT(cva->target_channel + add_output, size - 1, 0);
+	cva->assign = LIMIT(cva->assign + add_param, num_of_paramtype, 0);
 
 	static char str2[17] = {'\0'};
 
