@@ -29,6 +29,7 @@ typedef enum {
 
 typedef struct{
 	float pitchShift; //default:1 min:0 max:nolimit
+	float modPitchShift; //default:1 min:0 max:nolimit
 	int cutoff;
 	float modDepth;
 	float bendAmt; //default:1 min:0 max:1

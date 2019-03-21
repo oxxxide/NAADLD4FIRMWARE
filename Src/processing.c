@@ -37,6 +37,7 @@ static FORCE_INLINE void audio_process();
 
 static FORCE_INLINE void initCvInputParams(CVInputParams* p) {
 	p->pitchShift = 1.0f;
+	p->modPitchShift = 1.0f;
 	p->modDepth = 1.0f;
 	p->cutoff = 0;
 	p->bendAmt = 1.0f;
@@ -110,6 +111,9 @@ static FORCE_INLINE void distributeCvInputToParams() {
 			break;
 		case CV_MOD_DEPTH:
 			param->modDepth = (rawValue / 2500.0f);
+			break;
+		case CV_MOD_FREQ:
+			param->modPitchShift = cvToExponential_V_OCT(rawValue / 2500.0f);
 			break;
 		case CV_BEND_AMT:
 			param->bendAmt = (rawValue / 2500.0f);

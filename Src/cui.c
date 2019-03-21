@@ -81,11 +81,11 @@ void SelectMenu(int add) {
 		lcdWriteText(1,"~Velocity Curve  ",16);
 		break;
 	case ITEM_INDEX_CV_INPUT_SETTINGS:
-		lcdWriteText(0,"~CV IN Mapping  ",16);
+		lcdWriteText(0,"~CVIN Assignment",16);
 		lcdWriteText(1," EchoBack       ",16);
 		break;
 	case ITEM_INDEX_ECHO_BACK:
-		lcdWriteText(0," CV IN Mapping  ",16);
+		lcdWriteText(0," CVIN Assignment",16);
 		lcdWriteText(1,"~EchoBack       ",16);
 		break;
 	case ITEM_INDEX_SYSTEM_INFO:
@@ -407,7 +407,7 @@ void MIDIConfig_EchoBack(MidiConfig* config){
 
 void CV_Assignment_Settings_Show(CV_ASSIGN* array, int size, int add_input, int add_output, int add_param) {
 
-	static const int num_of_paramtype = 5;
+	static const int num_of_paramtype = 6;
 	static uint8_t selected = 0;
 	selected = LIMIT(selected + add_input, size-1, 0);
 
@@ -428,6 +428,9 @@ void CV_Assignment_Settings_Show(CV_ASSIGN* array, int size, int add_input, int 
 		break;
 	case CV_PITCH:
 		p_name = "OSC-PITCH  ";
+		break;
+	case CV_MOD_FREQ:
+		p_name = "Mod-Freq   ";
 		break;
 	case CV_CUTOFF:
 		p_name = "CUTOFF     ";

@@ -65,16 +65,16 @@ float FORCE_INLINE Gen_process_fm_plus_noise(Gen *gen, CVInputParams* cvinput) {
 	int cutoff_mod = 0;
 	const LFO_DESTINATION lfo_dest = LFO_getDest(&gen->lfo);
 	switch (lfo_dest) {
-		case Dest_ModPitch:
-			fmv = Osc_proc_lfo(&gen->modu,&gen->lfo);
-			break;
-		case Dest_Cutoff:
-			cutoff_mod = LFO_proc(&gen->lfo);
-			fmv = Osc_proc(&gen->modu);
-			break;
-		default :
-			fmv = Osc_proc(&gen->modu);
-			break;
+	case Dest_ModPitch:
+		fmv = Osc_proc_lfo(&gen->modu, &gen->lfo,cvinput->modDepth);
+		break;
+	case Dest_Cutoff:
+		cutoff_mod = LFO_proc(&gen->lfo);
+		fmv = Osc_proc_cvin(&gen->modu, cvinput->modDepth);
+		break;
+	default:
+		fmv = Osc_proc_cvin(&gen->modu, cvinput->modDepth);
+		break;
 	}
 	float v_noise = Noise_Generate() * AHR_proc(&gen->eg_noise)
 			* gen->noise_level;
@@ -99,14 +99,14 @@ float FORCE_INLINE Gen_process_fm(Gen *gen, CVInputParams* cvinput) {
 	const LFO_DESTINATION lfo_dest = LFO_getDest(&gen->lfo);
 	switch (lfo_dest) {
 		case Dest_ModPitch:
-			fmv = Osc_proc_lfo(&gen->modu,&gen->lfo);
+			fmv = Osc_proc_lfo(&gen->modu,&gen->lfo, cvinput->modDepth);
 			break;
 		case Dest_Cutoff:
 			cutoff_mod = LFO_proc(&gen->lfo);
-			fmv = Osc_proc(&gen->modu);
+			fmv = Osc_proc_cvin(&gen->modu,cvinput->modPitchShift);
 			break;
 		default :
-			fmv = Osc_proc(&gen->modu);
+			fmv = Osc_proc_cvin(&gen->modu,cvinput->modPitchShift);
 			break;
 	}
 	fmv = fmv * AHR_proc(&gen->eg_mod) * gen->mod_depth * cvinput->modDepth;
@@ -133,22 +133,22 @@ float FORCE_INLINE Gen_process_ringmod(Gen *gen, CVInputParams* cvinput) {
 	const LFO_DESTINATION lfo_dest = LFO_getDest(&gen->lfo);
 	switch(lfo_dest){
 		case Dest_ModPitch:
-			amv = Osc_proc_lfo(&gen->modu,&gen->lfo);
+			amv = Osc_proc_lfo(&gen->modu,&gen->lfo, cvinput->modDepth);
 			v_osc_carr = Osc_proc_bend(&gen->carr, cvinput->pitchShift, bend, 1.0f);
 			break;
 		case Dest_Cutoff:
 			cutoff_mod = LFO_proc(&gen->lfo);
-			amv = Osc_proc(&gen->modu);
+			amv = Osc_proc_cvin(&gen->modu,cvinput->modPitchShift);
 			v_osc_carr = Osc_proc_bend(&gen->carr, cvinput->pitchShift, bend, 1.0f);
 			break;
 		case Dest_ModDepth:
-			amv = Osc_proc(&gen->modu);
+			amv = Osc_proc_cvin(&gen->modu,cvinput->modPitchShift);
 			amv = ( (LFO_proc(&gen->lfo)+63.9f)/128.0f)*amv;
 			v_osc_carr = Osc_proc_bend(&gen->carr, cvinput->pitchShift, bend, 1.0f);
 			break;
 		case Dest_OSCPitch :
 		default:
-			amv = Osc_proc(&gen->modu);
+			amv = Osc_proc_cvin(&gen->modu,cvinput->modPitchShift);
 			v_osc_carr = Osc_proc_bend(&gen->carr, cvinput->pitchShift, bend, LFO_proc_exp(&gen->lfo));
 			break;
 	}

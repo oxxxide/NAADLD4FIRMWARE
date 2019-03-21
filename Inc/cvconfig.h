@@ -32,10 +32,11 @@ typedef enum {
 	CV_PITCH = 1,
 	CV_CUTOFF = 2,
 	CV_MOD_DEPTH = 3,
-	CV_BEND_AMT = 4,
-	CV_AMP_REL = 5,
-	CV_OSC_AEG_REL = 6,
-	CV_NOISE_AEG_REL = 7
+	CV_MOD_FREQ = 4,
+	CV_BEND_AMT = 5,
+	CV_AMP_REL = 6,
+	CV_OSC_AEG_REL = 7,
+	CV_NOISE_AEG_REL = 8
 } CV_ASSIGNABLE_PARAM_DEFINITION;
 
 typedef struct {

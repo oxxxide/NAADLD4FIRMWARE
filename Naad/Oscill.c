@@ -91,9 +91,15 @@ FORCE_INLINE float Osc_proc(Oscill *osc) {
 	return osc->waveArray[osc->phase>>16];
 }
 
-FORCE_INLINE float Osc_proc_lfo(Oscill *osc, LFO* lfo) {
+FORCE_INLINE float Osc_proc_cvin(Oscill *osc, float mod) {
+	osc->phase += (uint32_t)(osc->delta*mod);
+	osc->phase &= MASK_VALUE_FIXEDPOINT_4_16;
+	return osc->waveArray[osc->phase>>16];
+}
+
+FORCE_INLINE float Osc_proc_lfo(Oscill *osc, LFO* lfo, float mod) {
 	float lfoval = LFO_proc_exp(lfo);
-	osc->phase += (uint32_t)(osc->delta*lfoval);
+	osc->phase += (uint32_t)(osc->delta*lfoval*mod);
 	osc->phase &= MASK_VALUE_FIXEDPOINT_4_16;
 	return osc->waveArray[osc->phase >> 16];
 }
