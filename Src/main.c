@@ -1177,11 +1177,13 @@ void onChangeRE_D(int id, int add) {
 
 	if (LcdMenuState == LCD_STATE_CV_INPUT_CONFIG) {
 
+		AHR_EG* eg;
 		for (int i = 0; i < 4; i++) {
-			AHR_EG* eg;
 			switch (cv_assignements[i].assign) {
-			case CV_BEND_REL:
-				eg = &(synth[cv_assignements[i].target_channel].eg_bend);
+			case CV_AMP_REL:
+				eg = &(synth[cv_assignements[i].target_channel].eg_amp);
+				AHR_set_release(eg, eg->i_release);
+				eg = &(synth[cv_assignements[i].target_channel].eg_noise);
 				AHR_set_release(eg, eg->i_release);
 				break;
 			default:
@@ -1451,6 +1453,12 @@ void ON_PUSH_EXIT(void) {
 		return;
 	}
 
+	if (LcdMenuState == LCD_STATE_CONFIRM_RESET_CV_ASSIGNMENT) {
+		LcdMenuState = LCD_STATE_CV_INPUT_CONFIG;
+		CV_Assignment_Settings_Show(cv_assignements, 4, 0, 0, 0);
+		return;
+	}
+
 	if (LcdMenuState == LCD_STATE_CV_INPUT_CONFIG
 			|| LcdMenuState == LCD_STATE_CV_MONTORING_INPUTS
 			|| LcdMenuState == LCD_STATE_SYSTEM_INFO
@@ -1542,9 +1550,16 @@ void ON_PUSH_ENTER(void) {
 		}
 	}
 
-	if(LcdMenuState == LCD_STATE_CV_INPUT_CONFIG){
-		InitCvAssignements(cv_assignements,4);
-		CV_Assignment_Settings_Show(cv_assignements,4,0,0,0);
+	if (LcdMenuState == LCD_STATE_CV_INPUT_CONFIG) {
+		LcdMenuState = LCD_STATE_CONFIRM_RESET_CV_ASSIGNMENT;
+		showConfirmResetAssignment();
+		return;
+	}
+
+	if (LcdMenuState == LCD_STATE_CONFIRM_RESET_CV_ASSIGNMENT) {
+		InitCvAssignements(cv_assignements, 4);
+		LcdMenuState = LCD_STATE_CV_INPUT_CONFIG;
+		CV_Assignment_Settings_Show(cv_assignements, 4, 0, 0, 0);
 		return;
 	}
 

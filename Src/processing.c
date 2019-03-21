@@ -114,8 +114,10 @@ static FORCE_INLINE void distributeCvInputToParams() {
 		case CV_BEND_AMT:
 			param->bendAmt = (rawValue / 2500.0f);
 			break;
-		case CV_BEND_REL:
-			AHR_set_cvin(&(synth[cvass->target_channel].eg_bend),
+		case CV_AMP_REL:
+			AHR_set_cvin(&(synth[cvass->target_channel].eg_amp),
+					(rawValue / 2500.0f));
+			AHR_set_cvin(&(synth[cvass->target_channel].eg_noise),
 					(rawValue / 2500.0f));
 			break;
 		case CV_OSC_AEG_REL:

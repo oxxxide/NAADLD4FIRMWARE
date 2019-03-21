@@ -349,6 +349,11 @@ void showConfirmRevert() {
 		lcdWriteText(1, "N:EXIT  Y:ENTER ", 16);
 }
 
+void showConfirmResetAssignment() {
+		lcdWriteText(0, "ResetAssignment?", 16);
+		lcdWriteText(1, "N:EXIT  Y:ENTER ", 16);
+}
+
 void showSystemVersion() {
 	LcdMenuState = LCD_STATE_SYSTEM_INFO;
 	lcdWriteText(0, "NAAD LD4        ", 16);
@@ -402,7 +407,7 @@ void MIDIConfig_EchoBack(MidiConfig* config){
 
 void CV_Assignment_Settings_Show(CV_ASSIGN* array, int size, int add_input, int add_output, int add_param) {
 
-	static const int num_of_paramtype = 4;
+	static const int num_of_paramtype = 5;
 	static uint8_t selected = 0;
 	selected = LIMIT(selected + add_input, size-1, 0);
 
@@ -418,6 +423,8 @@ void CV_Assignment_Settings_Show(CV_ASSIGN* array, int size, int add_input, int 
 
 	char *p_name = 0;
 	switch (cva->assign) {
+	case CV_NONE:
+		p_name = "NONE       ";
 	case CV_PITCH:
 		p_name = "OSC-PITCH  ";
 		break;
@@ -430,8 +437,8 @@ void CV_Assignment_Settings_Show(CV_ASSIGN* array, int size, int add_input, int 
 	case CV_BEND_AMT:
 		p_name = "Bend-Amount";
 		break;
-	case CV_BEND_REL:
-		p_name = "Bend-Rel   ";
+	case CV_AMP_REL:
+		p_name = "AEG-Release ";
 		break;
 	default:
 		p_name = "";

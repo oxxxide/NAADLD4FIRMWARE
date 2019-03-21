@@ -31,6 +31,7 @@ typedef enum {
 	LCD_STATE_SEQ_BEAT_REPEAT = 16,
 	LCD_STATE_SYSTEM_INFO = 17,
 	LCD_STATE_CV_MONTORING_INPUTS = 18,
+	LCD_STATE_CONFIRM_RESET_CV_ASSIGNMENT = 19,
 } LCD_STATE;
 
 typedef enum {
@@ -96,6 +97,7 @@ void TriggerConfig_Show(void);
 void TriggerConfig_Change(int add);
 void ShowProgramMenu(int add);
 void showConfirmRevert(void);
+void showConfirmResetAssignment(void);
 void showSystemVersion(void);
 void CV_Monitor_Show(void);
 void CV_Assignment_Settings_Show(CV_ASSIGN* array, int size, int add_input,
