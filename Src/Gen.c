@@ -58,9 +58,9 @@ void Gen_init(Gen *gen) {
 }
 
 
-float FORCE_INLINE Gen_process_fm_plus_noise(Gen *gen, CVInputParams* cv) {
+float FORCE_INLINE Gen_process_fm_plus_noise(Gen *gen, CVInputParams* cvinput) {
 	float v_eg_amp = AHR_proc(&gen->eg_amp);
-	float bend = AHR_proc(&gen->eg_bend);
+	float bend = AHR_proc(&gen->eg_bend) * cvinput->bendAmt;
 	float fmv=0;
 	int cutoff_mod = 0;
 	const LFO_DESTINATION lfo_dest = LFO_getDest(&gen->lfo);
@@ -78,16 +78,16 @@ float FORCE_INLINE Gen_process_fm_plus_noise(Gen *gen, CVInputParams* cv) {
 	}
 	float v_noise = Noise_Generate() * AHR_proc(&gen->eg_noise)
 			* gen->noise_level;
-	fmv = fmv * AHR_proc(&gen->eg_mod) * gen->mod_depth *cv->modDepth + v_noise;
+	fmv = fmv * AHR_proc(&gen->eg_mod) * gen->mod_depth *cvinput->modDepth + v_noise;
 	fmv = LIMIT(fmv,1.0f,-1.0f);
-	float v_osc_carr = Osc_proc_bend_fm_lfo(&gen->carr, cv->pitchShift, bend, fmv, &gen->lfo);
+	float v_osc_carr = Osc_proc_bend_fm_lfo(&gen->carr, cvinput->pitchShift, bend, fmv, &gen->lfo);
 	float ret = (v_osc_carr * v_eg_amp * gen->carr_level);
 	switch (gen->filter.filter_type) {
 		case BYPASS:
 			return ret;
 		default:
 			return Filter_process_no_envelope_w_lfo(&gen->filter, ret,
-					(int32_t) (Decay_proc(&gen->decay_filter) * gen->decay_filter.i_amount + cutoff_mod));
+					(int32_t) (Decay_proc(&gen->decay_filter) * gen->decay_filter.i_amount + cutoff_mod + cvinput->cutoff));
 	}
 }
 
@@ -120,7 +120,7 @@ float FORCE_INLINE Gen_process_fm(Gen *gen, CVInputParams* cvinput) {
 			return ret;
 		default:
 			return Filter_process_no_envelope_w_lfo(&gen->filter, ret,
-					(int32_t) (Decay_proc(&gen->decay_filter) * gen->decay_filter.i_amount + cutoff_mod + (cvinput->cutoff)  ));
+					(int32_t) (Decay_proc(&gen->decay_filter) * gen->decay_filter.i_amount + cutoff_mod + cvinput->cutoff ));
 	}
 }
 
@@ -153,7 +153,7 @@ float FORCE_INLINE Gen_process_ringmod(Gen *gen, CVInputParams* cvinput) {
 			break;
 	}
 
-	amv = amv * AHR_proc(&gen->eg_mod) * gen->mod_depth;
+	amv = amv * AHR_proc(&gen->eg_mod) * gen->mod_depth * cvinput->modDepth;
 	v_osc_carr = (v_osc_carr * (1+amv)) * gen->cf_ringmod_dev;
 	float v_noise = Noise_Generate() * AHR_proc(&gen->eg_noise) * gen->noise_level;
 	float ret = (v_osc_carr * v_eg_amp * gen->carr_level) + (v_noise);
@@ -163,7 +163,7 @@ float FORCE_INLINE Gen_process_ringmod(Gen *gen, CVInputParams* cvinput) {
 	case BYPASS:
 		break;
 	default:
-		ret = Filter_process_no_envelope_w_lfo(&gen->filter, ret, (int32_t) (dk*gen->decay_filter.i_amount + cutoff_mod));
+		ret = Filter_process_no_envelope_w_lfo(&gen->filter, ret, (int32_t) (dk*gen->decay_filter.i_amount + cutoff_mod + cvinput->cutoff));
 		break;
 	}
 	return ret;

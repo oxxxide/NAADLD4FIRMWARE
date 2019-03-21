@@ -12,9 +12,9 @@ CV_ASSIGN cv_assignements[4] = { { CV_PITCH, 0 }, { CV_PITCH, 1 }, { CV_PITCH, 2
 		{ CV_PITCH, 3 } };
 
 
-void InitCvAssignements(CV_ASSIGN* pobj, int size) {
+void InitCvAssignements(CV_ASSIGN* array, int size) {
 	for (int i = 0; i < size; i++) {
-		CV_ASSIGN* a = &pobj[i];
+		CV_ASSIGN* a = &array[i];
 		a->target_channel = i;
 		a->assign = CV_PITCH;
 	}

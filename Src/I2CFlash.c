@@ -210,6 +210,9 @@ HAL_StatusTypeDef I2CFlash_FactoryReset(I2C_EEPROM* instance) {
 	InitSequencer(&seq);
 	I2CFlash_SaveSequenceData(instance, &seq);
 
+	CV_ASSIGN cvass[4];
+	InitCvAssignements(cvass,4);
+	I2CFlash_SaveCvMappingConfig(instance,cvass);
 	return ret;
 }
 

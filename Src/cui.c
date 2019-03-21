@@ -424,7 +424,8 @@ void CV_Assignment_Settings_Show(CV_ASSIGN* array, int size, int add_input, int 
 	char *p_name = 0;
 	switch (cva->assign) {
 	case CV_NONE:
-		p_name = "NONE       ";
+		p_name = "Disconnect ";
+		break;
 	case CV_PITCH:
 		p_name = "OSC-PITCH  ";
 		break;

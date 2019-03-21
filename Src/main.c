@@ -1525,7 +1525,7 @@ void ON_PUSH_ENTER(void) {
 		case ITEM_INDEX_CV_INPUT_SETTINGS:
 			LcdMenuState = LCD_STATE_CV_INPUT_CONFIG;
 			CV_Assignment_Settings_Show(cv_assignements,4,0,0,0);
-			break;
+			return;
 		case ITEM_INDEX_ECHO_BACK:
 			LcdMenuState = LCD_STATE_ECHOBACK;
 			MIDIConfig_EchoBack(&midiConfig);
