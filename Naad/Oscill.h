@@ -52,7 +52,9 @@ void Osc_update_delata(Oscill *osc);
 
 float Osc_proc(Oscill *osc);
 
-float Osc_proc_lfo(Oscill *osc, LFO *lfo);
+float Osc_proc_cvin(Oscill *osc, float mod);
+
+float Osc_proc_lfo(Oscill *osc, LFO* lfo, float mod);
 
 float Osc_proc_bend(Oscill *osc, float offset, float bend,float pMod);
 

@@ -11,6 +11,7 @@
 #include "stm32f4xx.h"
 #include "MidiConfig.h"
 #include "Sequencer.h"
+#include "cvconfig.h"
 
 typedef enum {
 	LCD_STATE_DEFAULT = 0,
@@ -19,7 +20,7 @@ typedef enum {
 	LCD_STATE_VELC = 5,
 	LCD_STATE_LOAD_PROGRAM = 6,
 	LCD_STATE_SAVE_PROGRAM = 7,
-	LCD_STATE_MONITOR_CV = 8,
+	LCD_STATE_CV_INPUT_CONFIG = 8,
 	LCD_STATE_FACTORY_RESET_CONFIRM = 9,
 	LCD_STATE_MIDI_RECEIVE_CONFIG = 10,
 	LCD_STATE_PROGRAM_MENU = 11,
@@ -29,6 +30,8 @@ typedef enum {
 	LCD_STATE_SEQ_STEP_CFG = 15,
 	LCD_STATE_SEQ_BEAT_REPEAT = 16,
 	LCD_STATE_SYSTEM_INFO = 17,
+	LCD_STATE_CV_MONTORING_INPUTS = 18,
+	LCD_STATE_CONFIRM_RESET_CV_ASSIGNMENT = 19,
 } LCD_STATE;
 
 typedef enum {
@@ -36,7 +39,7 @@ typedef enum {
 	ITEM_INDEX_SYNC = 1,
 	ITEM_INDEX_MIDI_MAPPING = 2,
 	ITEM_INDEX_VELOCITY_CURVE = 3,
-	ITEM_INDEX_MONITOR_CV = 4,
+	ITEM_INDEX_CV_INPUT_SETTINGS = 4,
 	ITEM_INDEX_ECHO_BACK = 5,
 	ITEM_INDEX_SYSTEM_INFO = 6,
 	ITEM_INDEX_FACTORY_RESET = 7
@@ -94,8 +97,11 @@ void TriggerConfig_Show(void);
 void TriggerConfig_Change(int add);
 void ShowProgramMenu(int add);
 void showConfirmRevert(void);
+void showConfirmResetAssignment(void);
 void showSystemVersion(void);
 void CV_Monitor_Show(void);
+void CV_Assignment_Settings_Show(CV_ASSIGN* array, int size, int add_input,
+		int add_output, int add_param);
 
 void ShowSequencerEditMode(Sequencer* seq, int moveStep, SyncMode syncMode);
 void showSequencerStepConfig(Sequencer* seq, int konb, int add);

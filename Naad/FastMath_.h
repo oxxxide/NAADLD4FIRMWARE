@@ -25,6 +25,7 @@ extern const real Table_Sin[FASTMATH_TABLE_SIZE];
 extern const real Table_Exponential[FASTMATH_TABLE_SIZE];
 extern const real Table_Exponential_ex2[2048];
 extern const real Table_square[FASTMATH_TABLE_SIZE];
+extern const real Table_DecayCoefficient[128];
 
 void FastMath_Init();
 

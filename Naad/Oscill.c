@@ -55,8 +55,8 @@ void Osc_set_pitch(Oscill *osc, int note) {
 	}
 	osc->pitch = note;
 	float _fine = osc->fine / 128.0f;
-	osc->delta =
-			note_to_freq(osc->pitch + _fine) / SAMPLING_RATE * MAX_VALUE_FIXEDPOINT_4_16 * osc->pitchSift;
+	osc->delta = note_to_freq(osc->pitch + _fine) * osc->pitchSift
+			/ SAMPLING_RATE * MAX_VALUE_FIXEDPOINT_4_16;
 }
 
 void Osc_set_fine(Oscill *osc, int finetune) {
@@ -65,17 +65,14 @@ void Osc_set_fine(Oscill *osc, int finetune) {
 	}
 	osc->fine = finetune;
 	float _fine = osc->fine / 128.0f;
-
-	osc->delta =
-			note_to_freq(osc->pitch + _fine) / SAMPLING_RATE * MAX_VALUE_FIXEDPOINT_4_16 * osc->pitchSift;
+	osc->delta = note_to_freq(osc->pitch + _fine) * osc->pitchSift
+			/ SAMPLING_RATE * MAX_VALUE_FIXEDPOINT_4_16;
 }
 
 void Osc_update_delata(Oscill *osc){
-
 	float _fine = osc->fine / 128.0f;
-
-	osc->delta =
-			note_to_freq(osc->pitch + _fine) / SAMPLING_RATE * MAX_VALUE_FIXEDPOINT_4_16 * osc->pitchSift;
+	osc->delta = note_to_freq(osc->pitch + _fine) * osc->pitchSift
+			/ SAMPLING_RATE * MAX_VALUE_FIXEDPOINT_4_16;
 }
 
 void Osc_set_modgain(Oscill *osc, int note) {
@@ -94,9 +91,15 @@ FORCE_INLINE float Osc_proc(Oscill *osc) {
 	return osc->waveArray[osc->phase>>16];
 }
 
-FORCE_INLINE float Osc_proc_lfo(Oscill *osc, LFO* lfo) {
+FORCE_INLINE float Osc_proc_cvin(Oscill *osc, float mod) {
+	osc->phase += (uint32_t)(osc->delta*mod);
+	osc->phase &= MASK_VALUE_FIXEDPOINT_4_16;
+	return osc->waveArray[osc->phase>>16];
+}
+
+FORCE_INLINE float Osc_proc_lfo(Oscill *osc, LFO* lfo, float mod) {
 	float lfoval = LFO_proc_exp(lfo);
-	osc->phase += (uint32_t)(osc->delta*lfoval);
+	osc->phase += (uint32_t)(osc->delta*lfoval*mod);
 	osc->phase &= MASK_VALUE_FIXEDPOINT_4_16;
 	return osc->waveArray[osc->phase >> 16];
 }

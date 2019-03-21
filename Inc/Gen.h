@@ -18,12 +18,23 @@
 #include "MidiConfig.h"
 #include "main.h"
 
+#define NUM_OF_VOICES 4
+
 typedef enum {
 	MODTYPE_FM = 0, MODTYPE_AM = 1,  MODTYPE_FM_NOISE_ROUTED = 2
 } MOD_TYPE;
 
 
 #define NUMOF_MODTYPE 3
+
+typedef struct{
+	float pitchShift; //default:1 min:0 max:nolimit
+	float modPitchShift; //default:1 min:0 max:nolimit
+	int cutoff;
+	float modDepth;
+	float bendAmt; //default:1 min:0 max:1
+} CVInputParams;
+extern CVInputParams CVInputParamsArray[NUM_OF_VOICES];
 
 typedef struct {
 	AHR_EG eg_amp;
@@ -81,11 +92,11 @@ void Gen_trig_note(Gen *gen, float velocity, uint8_t noteNo);
 
 void Gen_init(Gen *gen);
 
-float Gen_process_fm(Gen *gen, float cv);
+float Gen_process_fm(Gen *gen, CVInputParams* cv);
 
-float Gen_process_fm_plus_noise(Gen *gen, float cv);
+float Gen_process_fm_plus_noise(Gen *gen, CVInputParams* cv);
 
-float Gen_process_ringmod(Gen *gen, float cv);
+float Gen_process_ringmod(Gen *gen, CVInputParams* cv);
 
 //wave
 void Gen_set_carr_wave(Gen *gen, Waveform wf);

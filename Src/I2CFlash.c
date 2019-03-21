@@ -37,6 +37,17 @@ HAL_StatusTypeDef I2CFlash_Read(I2C_EEPROM* instance, uint16_t memAddress,
 
 }
 
+HAL_StatusTypeDef I2CFlash_SaveCvMappingConfig(I2C_EEPROM* instance, CV_ASSIGN* data) {
+	uint16_t size = sizeof(CV_ASSIGN) * 4;
+	return I2CFlash_Write(instance, ROM_ADDRESS_CV_MAPPING,
+				(uint8_t*) data, size);
+}
+
+HAL_StatusTypeDef I2CFlash_ReadCvMappingConfig(I2C_EEPROM* instance, CV_ASSIGN* data) {
+	uint16_t size = sizeof(CV_ASSIGN) * 4;
+	return I2CFlash_Read(instance,ROM_ADDRESS_CV_MAPPING, (uint8_t*)data, size);
+}
+
 HAL_StatusTypeDef I2CFlash_SaveMidiConfig(I2C_EEPROM* instance,
 		MidiConfig* midiconfig) {
 
@@ -199,7 +210,20 @@ HAL_StatusTypeDef I2CFlash_FactoryReset(I2C_EEPROM* instance) {
 	InitSequencer(&seq);
 	I2CFlash_SaveSequenceData(instance, &seq);
 
+	CV_ASSIGN cvass[4];
+	InitCvAssignements(cvass,4);
+	I2CFlash_SaveCvMappingConfig(instance,cvass);
 	return ret;
+}
+
+HAL_StatusTypeDef I2CFlash_SaveVersion(I2C_EEPROM* instance, uint16_t* version) {
+	return I2CFlash_Write(instance, ROM_ADDRESS_SYS_V_INFO,
+					(uint8_t*) version, sizeof(uint16_t));
+}
+
+HAL_StatusTypeDef I2CFlash_LoadVersion(I2C_EEPROM* instance, uint16_t* version) {
+	return I2CFlash_Read(instance, ROM_ADDRESS_SYS_V_INFO,
+					(uint8_t*) version, sizeof(uint16_t));
 }
 
 HAL_StatusTypeDef waitUntilReady(I2C_EEPROM* instance) {

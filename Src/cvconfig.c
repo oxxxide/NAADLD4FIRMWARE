@@ -8,10 +8,19 @@
 #include "cvconfig.h"
 
 
-CV_ASSIGN cv_assignes[4] = { { CV_PITCH, 0 }, { CV_PITCH, 1 }, { CV_PITCH, 2 },
+CV_ASSIGN cv_assignements[4] = { { CV_PITCH, 0 }, { CV_PITCH, 1 }, { CV_PITCH, 2 },
 		{ CV_PITCH, 3 } };
 
-float cvTable[CV_RESOLUTION] = { 1, 1.0036166659754628, 1.007246412223704,
+
+void InitCvAssignements(CV_ASSIGN* array, int size) {
+	for (int i = 0; i < size; i++) {
+		CV_ASSIGN* a = &array[i];
+		a->target_channel = i;
+		a->assign = CV_PITCH;
+	}
+}
+
+float cvTable_V_OCT[CV_RESOLUTION] = { 1, 1.0036166659754628, 1.007246412223704,
 		1.0108892860517005, 1.0145453349375237, 1.0182146065309567,
 		1.0218971486541166, 1.0255930093020766, 1.029302236643492,
 		1.0330248790212284, 1.0367609849529913, 1.0405106031319582,
@@ -331,12 +340,15 @@ float cvTable[CV_RESOLUTION] = { 1, 1.0036166659754628, 1.007246412223704,
 		31.7697830557206, 31.884683749146056, 32
 };
 
-float cvToExponential(float cv) {
+/**
+ * @param cv 0 to 960
+ */
+float cvToExponential_V_OCT(float cv) {
 	int index = (int) (cv * 960.0f);
 	if (index < 0) {
 		return 1.0f;
 	} else if (index > 960) {
 		index = 960;
 	}
-	return cvTable[index];
+	return cvTable_V_OCT[index];
 }
