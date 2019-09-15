@@ -12,7 +12,7 @@
 #define RE_VALRIATION_4 16
 #define RE_VALRIATION_5 24
 
-volatile uint64_t timestamp = 0;
+volatile uint64_t scanning_ts = 0;
 Renc encoders[6];
 
 void InitRotaryEncoders() {
@@ -98,7 +98,7 @@ int Renc_read(Renc *renc) {
 	int retval = 0;
 	switch (renc->data) {
 	case 0b1000: {
-		uint64_t w = timestamp - renc->lastmodified;
+		uint64_t w = scanning_ts - renc->lastmodified;
 		if (w < 7) {
 			retval = -RE_VALRIATION_5;
 		} else if (w < 15) {
@@ -110,11 +110,11 @@ int Renc_read(Renc *renc) {
 		} else {
 			retval = -1;
 		}
-		renc->lastmodified = timestamp;
+		renc->lastmodified = scanning_ts;
 	}
 		break;
 	case 0b1101: {
-		uint64_t w = timestamp - renc->lastmodified;
+		uint64_t w = scanning_ts - renc->lastmodified;
 		if (w < 7) {
 			retval = RE_VALRIATION_5;
 		} else if (w < 15) {
@@ -126,7 +126,7 @@ int Renc_read(Renc *renc) {
 		} else {
 			retval = 1;
 		}
-		renc->lastmodified = timestamp;
+		renc->lastmodified = scanning_ts;
 	}
 		break;
 	default:

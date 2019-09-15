@@ -36,7 +36,7 @@ typedef struct {
 
 extern Renc encoders[6];
 
-extern volatile uint64_t timestamp;
+extern volatile uint64_t scanning_ts;
 
 void onChangeRE_S(int id, int add);
 

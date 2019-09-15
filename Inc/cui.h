@@ -103,9 +103,9 @@ void CV_Monitor_Show(void);
 void CV_Assignment_Settings_Show(CV_ASSIGN* array, int size, int add_input,
 		int add_output, int add_param);
 
-void ShowSequencerEditMode(Sequencer* seq, int moveStep, SyncMode syncMode);
-void showSequencerStepConfig(Sequencer* seq, int konb, int add);
-void showSequencerBeatRepeatConfig(Sequencer* seq, int knob, int add);
+void ShowSequencerEditMode(Sequencer88* seq, int moveStep, SyncMode syncMode);
+void showSequencerStepConfig(Sequencer88* seq, int konb, int add);
+void showSequencerBeatRepeatConfig(Sequencer88* seq, int knob, int add);
 
 void ConfirmFactoryReset(void);
 

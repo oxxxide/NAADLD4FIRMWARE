@@ -43,7 +43,7 @@
 #include "Sequencer.h"
 #include "cui.h"
 
-extern Sequencer sequencer;
+extern Sequencer88 sequencer;
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
@@ -373,7 +373,7 @@ void DMA1_Stream7_IRQHandler(void)
 void TIM6_DAC_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM6_DAC_IRQn 0 */
-	timestamp++;
+	scanning_ts++;
 	checkRotaryEncoders();
 	CheckGPIO_Pins();
   /* USER CODE END TIM6_DAC_IRQn 0 */

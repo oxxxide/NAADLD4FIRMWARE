@@ -51,10 +51,10 @@ HAL_StatusTypeDef I2CFlash_ReadCvMappingConfig(I2C_EEPROM* instance,
 		CV_ASSIGN* data);
 
 HAL_StatusTypeDef I2CFlash_SaveSequenceData(I2C_EEPROM* instance,
-		Sequencer* seq);
+		Sequencer88* seq);
 
 HAL_StatusTypeDef I2CFlash_LoadSequenceData(I2C_EEPROM* instance,
-		Sequencer* seq);
+		Sequencer88* seq);
 
 HAL_StatusTypeDef I2CFlash_SaveVersion(I2C_EEPROM* instance,
 		uint16_t* version);

@@ -50,23 +50,23 @@ typedef struct {
 	uint8_t playFxEnabled;
 	PlayFx playfx[4];
 	PlayFxStatus pfx_status[4];
-} Sequencer;
+} Sequencer88;
 
-void StartSequencer(Sequencer* seq);
+void StartSequencer(Sequencer88* seq);
 
-void StopSequencer(Sequencer* seq);
+void StopSequencer(Sequencer88* seq);
 
-void ClockSequencer(Sequencer* seq);
+void ClockSequencer(Sequencer88* seq);
 
 
-void OnBeatRdmzer(Sequencer* seq, int index);
-void tickPlayFx(Sequencer* seq, int index);
+void OnBeatRdmzer(Sequencer88* seq, int index);
+void tickPlayFx(Sequencer88* seq, int index);
 
-void InitSequencer(Sequencer* seq);
+void InitSequencer(Sequencer88* seq);
 
-void ChangeBPM(Sequencer* seq, int add);
+void ChangeBPM(Sequencer88* seq, int add);
 
-void SetBPM(Sequencer* seq, int16_t bpm);
+void SetBPM(Sequencer88* seq, int16_t bpm);
 
 void ON_PROGRESS_SEQUENCER_CLOCK();
 

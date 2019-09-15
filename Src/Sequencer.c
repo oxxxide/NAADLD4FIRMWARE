@@ -14,7 +14,7 @@
 
 extern Gen synth[NUM_OF_VOICES];
 
-void StartSequencer(Sequencer* seq){
+void StartSequencer(Sequencer88* seq){
 	seq->clock_cnt = 0;
 	seq->step[0] = 0;
 	seq->step[1] = 0;
@@ -24,7 +24,7 @@ void StartSequencer(Sequencer* seq){
 	ON_START_SEQUENCER();
 }
 
-void StopSequencer(Sequencer* seq){
+void StopSequencer(Sequencer88* seq){
 	seq->status = SEQ_IDLING;
 	seq->clock_cnt = 0;
 	seq->step[0] = 0;
@@ -34,18 +34,18 @@ void StopSequencer(Sequencer* seq){
 	ON_STOP_SEQUENCER();
 }
 
-void ChangeBPM(Sequencer* seq, int add) {
+void ChangeBPM(Sequencer88* seq, int add) {
 	int tmp = seq->bpm + add;
 	seq->bpm = (int16_t)LIMIT(tmp, 300, 20);
 	TIM13->ARR = (uint32_t)(6000000.0f / (float)seq->bpm / 24.0f + 0.5f ) ;
 }
 
-void SetBPM(Sequencer* seq, int16_t bpm) {
+void SetBPM(Sequencer88* seq, int16_t bpm) {
 	seq->bpm = (int16_t)LIMIT(bpm, 300, 20);
 	TIM13->ARR = (uint32_t)(6000000.0f / (float)seq->bpm / 24.0f + 0.5f ) ;
 }
 
-void ClockSequencer(Sequencer* seq) {
+void ClockSequencer(Sequencer88* seq) {
 	ON_PROGRESS_SEQUENCER_CLOCK();
 	if (seq->status == SEQ_RUNNING && seq->clock_cnt <= 0) {
 		SEQUENCER_BEAT_CALLBACK(seq->step);
@@ -68,7 +68,7 @@ void ClockSequencer(Sequencer* seq) {
 	seq->clock_cnt--;
 }
 
-void InitSequencer(Sequencer* seq){
+void InitSequencer(Sequencer88* seq){
 	seq->clock_cnt = 0;
 	seq->step[0] = 0;
 	seq->step[1] = 0;
@@ -101,7 +101,7 @@ void InitSequencer(Sequencer* seq){
 	}
 }
 
-void OnBeatRdmzer(Sequencer* seq, int index){
+void OnBeatRdmzer(Sequencer88* seq, int index){
 
 	if(!seq->playFxEnabled){
 		return;
@@ -154,7 +154,7 @@ void OnBeatRdmzer(Sequencer* seq, int index){
 	}
 }
 
-void tickPlayFx(Sequencer* seq, int index) {
+void tickPlayFx(Sequencer88* seq, int index) {
 	PlayFxStatus* status = &seq->pfx_status[index];
 	if (status->gate > 0) {
 		status->total_cnt--;
