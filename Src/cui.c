@@ -213,7 +213,7 @@ void MIDIConfig_VelocityCurve(MidiConfig* midiConfig, int add) {
 	}
 }
 
-void ShowSequencerEditMode(Sequencer* seq, int moveStep, SyncMode syncMode) {
+void ShowSequencerEditMode(Sequencer88* seq, int moveStep, SyncMode syncMode) {
 	LcdMenuState = LCD_STATE_SEQ_EDIT;
 	char str[17] = { '\0' };
 	if (moveStep != 0) {
@@ -243,7 +243,7 @@ void ShowSequencerEditMode(Sequencer* seq, int moveStep, SyncMode syncMode) {
 	lcdWriteText(1, str, 16);
 }
 
-void showSequencerStepConfig(Sequencer* seq, int knob, int add) {
+void showSequencerStepConfig(Sequencer88* seq, int knob, int add) {
 	LcdMenuState = LCD_STATE_SEQ_STEP_CFG;
 
 	if (add > 0) {
@@ -284,7 +284,7 @@ void showSequencerStepConfig(Sequencer* seq, int knob, int add) {
 	lcdWriteText(1, str, 16);
 }
 
-void showSequencerBeatRepeatConfig(Sequencer* seq, int knob, int add) {
+void showSequencerBeatRepeatConfig(Sequencer88* seq, int knob, int add) {
 	LcdMenuState = LCD_STATE_SEQ_BEAT_REPEAT;
 
 	if (add > 0) {

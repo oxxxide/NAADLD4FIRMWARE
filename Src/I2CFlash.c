@@ -58,7 +58,7 @@ HAL_StatusTypeDef I2CFlash_SaveMidiConfig(I2C_EEPROM* instance,
 }
 
 HAL_StatusTypeDef I2CFlash_SaveSequenceData(I2C_EEPROM* instance,
-		Sequencer* seq) {
+		Sequencer88* seq) {
 	const uint16_t size = sizeof(Notes);
 	Notes *p = &(seq->sequenceData[0]);
 	HAL_StatusTypeDef ret;
@@ -109,7 +109,7 @@ HAL_StatusTypeDef I2CFlash_SaveSequenceData(I2C_EEPROM* instance,
 
 
 HAL_StatusTypeDef I2CFlash_LoadSequenceData(I2C_EEPROM* instance,
-		Sequencer* seq) {
+		Sequencer88* seq) {
 	uint16_t size = sizeof(Notes);
 	Notes *p = &(seq->sequenceData[0]);
 	HAL_StatusTypeDef ret;
@@ -206,7 +206,7 @@ HAL_StatusTypeDef I2CFlash_FactoryReset(I2C_EEPROM* instance) {
 		}
 	}
 
-	Sequencer seq;
+	Sequencer88 seq;
 	InitSequencer(&seq);
 	I2CFlash_SaveSequenceData(instance, &seq);
 

@@ -11,7 +11,7 @@
 volatile LCDBUFF lcd_text_buf1;
 volatile LCDBUFF lcd_text_buf2;
 
-const char* LCDM_EDIT_GROUP_TEXT[NUM_OF_GROUP] = {"OSCILATOR","AMPLIFIER","MODULATOR","BEND","NOISE","FILTER","LFO"};
+const char* LCDM_EDIT_GROUP_TEXT[NUM_OF_GROUP] = {"OSCILLATOR","AMPLIFIER","MODULATOR","BEND","NOISE","FILTER","LFO"};
 
 const char* LCDM_PARAMETER_TEXT[NUM_OF_GROUP][NUM_OF_COLUMN] = {
 		{ "Wave", "Pitch", "Mod-Depth", "Mod-Type" },

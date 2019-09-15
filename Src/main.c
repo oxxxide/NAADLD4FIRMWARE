@@ -108,7 +108,7 @@ int selected_row = 0;
 int selected_col = 1;
 static int pNo = 0;
 static volatile uint8_t tartgetProgramNo = 0;
-Sequencer sequencer;
+Sequencer88 sequencer;
 static I2C_EEPROM eeprom;
 static MidiConfig midiConfig;
 
@@ -145,6 +145,7 @@ static void checkFwUpdated(void);
 void revert(void);
 void write_LCD_PARAM(const char *name, int value);
 void write_LCD_PARAM_NAME(const char *param_name, const char* value);
+void POLLING_BUTTONS(void);
 static void refreshLCD(void);
 static void updateLCD(void);
 static void updateSelectProgram(void);
