@@ -2667,9 +2667,9 @@ void StartAccessStorageTask(void const * argument)
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   /* USER CODE BEGIN Callback 0 */
-	//if (midiConfig.syncMode == InternalClock && htim->Instance == TIM13) {
-	//	ClockSequencer(&sequencer);
-	//}
+	if (midiConfig.syncMode == InternalClock && htim->Instance == TIM13) {
+		ClockSequencer(&sequencer);
+	}
   /* USER CODE END Callback 0 */
   if (htim->Instance == TIM10) {
     HAL_IncTick();
